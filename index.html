@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Homework Book</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <header>
+  <div id="date-display"></div>
+  <button id="settings-toggle" aria-label="Open settings">⚙️</button>
+  <button id="calendar-toggle" aria-label="Open calendar">📅</button>
+  <button id="install-btn" class="hidden">⬇️ Install</button>
+</header>
+
+  <div id="event-display"></div>
+
+  <main>
+    <section id="notepad">
+      <h2>Homework Notes</h2>
+      <div id="subjects-container">
+        <!-- 8 subject slots -->
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+        <div class="subject-block">
+          <input type="text" class="subject" placeholder="Subject name">
+          <textarea class="notes" placeholder="Write homework..."></textarea>
+          <button class="save-homework">Save Homework</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="calendar" class="hidden" aria-hidden="true">
+      <div class="calendar-header">
+        <button id="prev-month">◀</button>
+        <h2 id="calendar-title">Calendar</h2>
+        <button id="next-month">▶</button>
+        <button id="calendar-close" aria-label="Close calendar">✖</button>
+      </div>
+      <div id="calendar-grid"></div>
+      <div id="event-form" class="hidden">
+        <h3>Add Event</h3>
+        <input type="text" id="event-title" placeholder="Event title">
+        <button id="save-event">Save</button>
+      </div>
+    </section>
+
+    <section id="settings" class="hidden" aria-hidden="true">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button id="settings-close">✖</button>
+      </div>
+      <div id="saved-notes"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
