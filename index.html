@@ -9,11 +9,11 @@
 </head>
 <body>
   <header>
-  <div id="date-display"></div>
-  <button id="settings-toggle" aria-label="Open settings">⚙️</button>
-  <button id="calendar-toggle" aria-label="Open calendar">📅</button>
-  <button id="install-btn" class="hidden">⬇️ Install</button>
-</header>
+    <div id="date-display"></div>
+    <button id="settings-toggle" aria-label="Open settings">⚙️</button>
+    <button id="calendar-toggle" aria-label="Open calendar">📅</button>
+    <button id="install-btn" class="hidden">⬇️ Install</button>
+  </header>
 
   <div id="event-display"></div>
 
@@ -90,5 +90,14 @@
   </main>
 
   <script src="app.js"></script>
+
+  <!-- Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js')
+        .then(() => console.log('Service Worker registered successfully'))
+        .catch(err => console.error('Service Worker registration failed:', err));
+    }
+  </script>
 </body>
 </html>
