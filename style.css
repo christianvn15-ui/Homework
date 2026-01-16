@@ -172,3 +172,17 @@ main {
 #install-btn.hidden {
   display: none;
 }
+
+#calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+#calendar-weekdays div {
+  padding: 0.3rem;
+  border-bottom: 2px solid var(--border);
+}
