@@ -59,7 +59,7 @@ function checkHomeworkReset() {
 checkHomeworkReset();
 
 // --- Manual Save Homework ---
-document.querySelectorAll(".save-homework").forEach((btn, idx) => {
+document.querySelectorAll(".save-homework").forEach((btn) => {
   btn.addEventListener("click", () => {
     const block = btn.closest(".subject-block");
     const subject = block.querySelector(".subject").value;
@@ -89,6 +89,16 @@ function renderCalendar(month) {
 
   const events = JSON.parse(localStorage.getItem("events")) || {};
 
+  // Find which day of week the month starts on (0 = Sunday, 6 = Saturday)
+  const firstDay = new Date(year, month, 1).getDay();
+
+  // Add blank cells before the first day
+  for (let i = 0; i < firstDay; i++) {
+    const blank = document.createElement("div");
+    grid.appendChild(blank);
+  }
+
+  // Add actual days
   for (let d = 1; d <= daysInMonth; d++) {
     const cell = document.createElement("div");
     cell.textContent = d;
