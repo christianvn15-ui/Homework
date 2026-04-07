@@ -838,12 +838,16 @@ class UIController {
     });
   }
   
-  updateThemeIcon(theme) {
-    const icon = document.querySelector('#theme-toggle i');
-    if (icon) {
-      icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+  function updateThemeIcon(theme) {
+  const icon = document.querySelector('#theme-toggle i');
+  if (icon) {
+    if (theme === 'dark') {
+      icon.className = 'fa-solid fa-circle-half-stroke'; // default orientation
+    } else {
+      icon.className = 'fa-solid fa-circle-half-stroke fa-flip-horizontal'; // flipped version
     }
   }
+}
   
   toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
