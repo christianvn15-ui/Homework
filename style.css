@@ -200,14 +200,12 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-text-secondary);
     transition: all var(--transition-fast);
     position: relative;
     background: transparent;
   }
   
   .icon-btn:hover {
-    background: var(--color-bg);
     color: var(--color-primary);
     transform: translateY(-2px);
   }
