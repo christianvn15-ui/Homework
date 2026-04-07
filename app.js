@@ -1,3 +1,11 @@
+// app.js - Modern JavaScript with ES6+ features, performance optimizations, and clean architecture
+
+/**
+ * Homework Book PWA - Main Application
+ * Features: Modern ES6+, View Transitions API, Idle Detection, Badging API
+ */
+
+// Configuration
 const CONFIG = {
   MAX_SUBJECTS: 7,
   STORAGE_KEYS: {
@@ -838,16 +846,19 @@ class UIController {
     });
   }
   
-  function updateThemeIcon(theme) {
-  const icon = document.querySelector('#theme-toggle i');
-  if (icon) {
-    if (theme === 'dark') {
-      icon.className = 'fa-solid fa-circle-half-stroke'; // default orientation
-    } else {
-      icon.className = 'fa-solid fa-circle-half-stroke fa-flip-horizontal'; // flipped version
+  // FIXED: Moved this method inside the class properly
+  updateThemeIcon(theme) {
+    const icon = document.querySelector('#theme-toggle i');
+    if (icon) {
+      if (theme === 'dark') {
+        // Dark mode: show sun icon (to indicate clicking will go to light)
+        icon.className = 'fa-solid fa-sun';
+      } else {
+        // Light mode: show moon icon (to indicate clicking will go to dark)
+        icon.className = 'fa-solid fa-moon';
+      }
     }
   }
-}
   
   toggleTheme() {
     const current = document.documentElement.getAttribute('data-theme');
