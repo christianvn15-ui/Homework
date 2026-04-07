@@ -1,11 +1,3 @@
-// app.js - Modern JavaScript with ES6+ features, performance optimizations, and clean architecture
-
-/**
- * Homework Book PWA - Main Application
- * Features: Modern ES6+, View Transitions API, Idle Detection, Badging API
- */
-
-// Configuration
 const CONFIG = {
   MAX_SUBJECTS: 7,
   STORAGE_KEYS: {
@@ -13,9 +5,30 @@ const CONFIG = {
     EVENTS: 'events',
     LAST_DAY: 'lastDay',
     THEME: 'theme',
-    SUBJECTS: 'subjects'
+    SUBJECTS: 'subjects',
+    SUBJECTS_SELECTED: 'subjectsSelected',
+    AVAILABLE_SUBJECTS: 'availableSubjects'
   }
 };
+
+// Available subjects list (15 options)
+const AVAILABLE_SUBJECTS = [
+  'Maths',
+  'Math Lit', 
+  'Science',
+  'Biology',
+  'English',
+  'Afrikaans',
+  'CAT',
+  'IT',
+  'EGD',
+  'Accounting',
+  'Business',
+  'Life Orientation',
+  'Hospitality',
+  'Tourism',
+  'History'
+];
 
 // State Management
 class AppState {
@@ -27,6 +40,7 @@ class AppState {
     this.currentYear = this.currentDate.getFullYear();
     this.selectedDate = null;
     this.deferredPrompt = null;
+    this.subjectsSelected = false;
   }
   
   async init() {
@@ -36,13 +50,19 @@ class AppState {
   }
   
   async loadData() {
-    // Load subjects from localStorage or create defaults
+    // Check if user has already selected subjects
+    this.subjectsSelected = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED) === 'true';
+    
+    // Load subjects from localStorage
     const savedSubjects = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS);
+    
     if (savedSubjects) {
       this.subjects = JSON.parse(savedSubjects);
-    } else {
+    } else if (this.subjectsSelected) {
+      // Should have subjects if selected flag is true, create defaults if missing
       this.createDefaultSubjects();
     }
+    // If no subjects and not selected, will show subject picker
     
     // Load events
     const savedEvents = localStorage.getItem(CONFIG.STORAGE_KEYS.EVENTS);
@@ -52,14 +72,27 @@ class AppState {
   }
   
   createDefaultSubjects() {
-    const defaultNames = ['Maths', 'Math Lit', 'Science', 'Biology', 'English', 'Afrikaans', 'CAT', 'IT' 'EGD', 'Accounting', 'Bussiness', 'Life Orientation', 'Hospitallity', 'Tourism', 'History'];
-    this.subjects = defaultNames.map((name, index) => ({
+    // This is a fallback - normally subjects are set via picker
+    this.subjects = AVAILABLE_SUBJECTS.slice(0, CONFIG.MAX_SUBJECTS).map((name, index) => ({
       id: `subject-${Date.now()}-${index}`,
       name: name,
       notes: '',
       saved: false,
       lastModified: null
     }));
+    this.saveSubjects();
+  }
+  
+  setSelectedSubjects(selectedNames) {
+    this.subjects = selectedNames.map((name, index) => ({
+      id: `subject-${Date.now()}-${index}`,
+      name: name,
+      notes: '',
+      saved: false,
+      lastModified: null
+    }));
+    this.subjectsSelected = true;
+    localStorage.setItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED, 'true');
     this.saveSubjects();
   }
   
@@ -150,6 +183,14 @@ class AppState {
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
+  
+  resetSubjectsSelection() {
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED);
+    localStorage.removeItem(CONFIG.STORAGE_KEYS.SUBJECTS);
+    this.subjectsSelected = false;
+    this.subjects = [];
+    location.reload();
+  }
 }
 
 // UI Controller
@@ -174,21 +215,206 @@ class UIController {
       settingsDialog: document.getElementById('settings-dialog'),
       savedNotes: document.getElementById('saved-notes'),
       eventDisplay: document.getElementById('event-display'),
-      installBtn: document.getElementById('install-btn')
+      installBtn: document.getElementById('install-btn'),
+      app: document.getElementById('app')
     };
   }
   
   init() {
     this.renderDate();
-    this.renderSubjects();
-    this.renderTodayEvents();
-    this.attachEventListeners();
     this.initTheme();
+    
+    // Check if user needs to select subjects
+    if (!this.state.subjectsSelected || this.state.subjects.length === 0) {
+      this.showSubjectPicker();
+    } else {
+      this.renderSubjects();
+      this.renderTodayEvents();
+    }
+    
+    this.attachEventListeners();
     
     // Request idle callback for non-critical initialization
     if ('requestIdleCallback' in window) {
       requestIdleCallback(() => this.idleInitialization());
     }
+  }
+  
+  showSubjectPicker() {
+    // Create subject picker modal
+    const picker = document.createElement('dialog');
+    picker.id = 'subject-picker';
+    picker.className = 'modal subject-picker-modal';
+    picker.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Select Your 7 Subjects</h2>
+        </div>
+        <div class="picker-instructions">
+          <p>Choose exactly 7 subjects from the list below:</p>
+          <span class="selection-count">0/7 selected</span>
+        </div>
+        <div class="subjects-picker-grid">
+          ${AVAILABLE_SUBJECTS.map((subject, index) => `
+            <label class="subject-option" data-subject="${subject}">
+              <input type="checkbox" value="${subject}" data-index="${index}">
+              <span class="checkmark"></span>
+              <span class="subject-name">${subject}</span>
+            </label>
+          `).join('')}
+        </div>
+        <div class="picker-actions">
+          <button id="confirm-subjects" class="btn-primary" disabled>
+            Confirm Selection
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(picker);
+    
+    // Add styles for picker
+    const style = document.createElement('style');
+    style.textContent = `
+      .subject-picker-modal {
+        width: min(95vw, 600px);
+        max-height: 90vh;
+      }
+      .picker-instructions {
+        padding: var(--space-md);
+        background: var(--color-bg);
+        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .picker-instructions p {
+        margin: 0;
+        color: var(--color-text);
+      }
+      .selection-count {
+        font-weight: 600;
+        color: var(--color-primary);
+        font-size: 1.125rem;
+      }
+      .subjects-picker-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: var(--space-sm);
+        padding: var(--space-md);
+        max-height: 50vh;
+        overflow-y: auto;
+        background: var(--color-surface);
+      }
+      .subject-option {
+        display: flex;
+        align-items: center;
+        gap: var(--space-sm);
+        padding: var(--space-sm) var(--space-md);
+        background: var(--color-bg);
+        border: 2px solid var(--color-border);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+      }
+      .subject-option:hover {
+        border-color: var(--color-primary);
+        transform: translateY(-2px);
+      }
+      .subject-option.selected {
+        background: var(--color-primary);
+        border-color: var(--color-primary);
+        color: white;
+      }
+      .subject-option input {
+        display: none;
+      }
+      .checkmark {
+        width: 20px;
+        height: 20px;
+        border: 2px solid var(--color-border);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all var(--transition-fast);
+      }
+      .subject-option.selected .checkmark {
+        background: white;
+        border-color: white;
+      }
+      .subject-option.selected .checkmark::after {
+        content: '✓';
+        color: var(--color-primary);
+        font-weight: bold;
+      }
+      .subject-name {
+        font-weight: 500;
+      }
+      .picker-actions {
+        padding: var(--space-md);
+        border-top: 1px solid var(--color-border);
+        display: flex;
+        justify-content: center;
+        background: var(--color-surface-elevated);
+      }
+      #confirm-subjects {
+        padding: var(--space-sm) var(--space-xl);
+        font-size: 1rem;
+      }
+      #confirm-subjects:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Show modal
+    picker.showModal();
+    
+    // Handle selection
+    const checkboxes = picker.querySelectorAll('input[type="checkbox"]');
+    const confirmBtn = picker.querySelector('#confirm-subjects');
+    const countDisplay = picker.querySelector('.selection-count');
+    let selectedCount = 0;
+    
+    checkboxes.forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const label = e.target.closest('.subject-option');
+        
+        if (e.target.checked) {
+          if (selectedCount >= CONFIG.MAX_SUBJECTS) {
+            e.target.checked = false;
+            this.state.showToast(`You can only select ${CONFIG.MAX_SUBJECTS} subjects`, 'error');
+            return;
+          }
+          selectedCount++;
+          label.classList.add('selected');
+        } else {
+          selectedCount--;
+          label.classList.remove('selected');
+        }
+        
+        countDisplay.textContent = `${selectedCount}/${CONFIG.MAX_SUBJECTS} selected`;
+        confirmBtn.disabled = selectedCount !== CONFIG.MAX_SUBJECTS;
+      });
+    });
+    
+    // Handle confirm
+    confirmBtn.addEventListener('click', () => {
+      const selected = Array.from(checkboxes)
+        .filter(cb => cb.checked)
+        .map(cb => cb.value);
+      
+      this.state.setSelectedSubjects(selected);
+      picker.close();
+      picker.remove();
+      style.remove();
+      
+      this.renderSubjects();
+      this.renderTodayEvents();
+      this.state.showToast('Subjects selected successfully!', 'success');
+    });
   }
   
   idleInitialization() {
@@ -250,6 +476,7 @@ class UIController {
         placeholder="Subject name" 
         value="${subject.name}"
         aria-label="Subject name"
+        readonly
       >
       <textarea 
         class="notes-textarea" 
@@ -267,7 +494,6 @@ class UIController {
     `;
     
     // Event delegation within card
-    const input = card.querySelector('.subject-input');
     const textarea = card.querySelector('.notes-textarea');
     const saveBtn = card.querySelector('.btn-icon.save');
     const deleteBtn = card.querySelector('.btn-icon.delete');
@@ -277,21 +503,20 @@ class UIController {
     const autoSave = () => {
       clearTimeout(debounceTimer);
       debounceTimer = setTimeout(() => {
-        this.saveSubject(index, input.value, textarea.value);
+        this.saveSubject(index, subject.name, textarea.value);
       }, 1000);
     };
     
-    input.addEventListener('input', autoSave);
     textarea.addEventListener('input', autoSave);
     
     saveBtn.addEventListener('click', () => {
-      this.saveSubject(index, input.value, textarea.value, true);
+      this.saveSubject(index, subject.name, textarea.value, true);
       card.classList.add('saved');
       setTimeout(() => card.classList.remove('saved'), 2000);
     });
     
     deleteBtn.addEventListener('click', () => {
-      if (confirm('Delete this subject?')) {
+      if (confirm('Delete this subject? You can reselect subjects in settings.')) {
         this.deleteSubject(index);
       }
     });
@@ -310,7 +535,6 @@ class UIController {
     }
     
     this.state.saveSubjects();
-    this.updateSubjectCounter();
   }
   
   deleteSubject(index) {
@@ -322,6 +546,7 @@ class UIController {
     this.state.subjects.splice(index, 1);
     this.state.saveSubjects();
     this.renderSubjects();
+    this.updateSubjectCounter();
     this.state.showToast('Subject deleted', 'info');
   }
   
@@ -331,25 +556,64 @@ class UIController {
       return;
     }
     
-    const newSubject = {
-      id: `subject-${Date.now()}`,
-      name: '',
-      notes: '',
-      saved: false,
-      lastModified: null
+    const available = AVAILABLE_SUBJECTS.filter(sub => 
+      !this.state.subjects.some(s => s.name === sub)
+    );
+    
+    if (available.length === 0) {
+      this.state.showToast('No more subjects available to add', 'error');
+      return;
+    }
+    
+    // Show picker to add one subject
+    const picker = document.createElement('dialog');
+    picker.className = 'modal';
+    picker.innerHTML = `
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Add Subject</h2>
+          <button class="close-btn" onclick="this.closest('dialog').close()">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div style="padding: var(--space-md); max-height: 40vh; overflow-y: auto;">
+          ${available.map(sub => `
+            <button class="btn-secondary" style="width: 100%; margin-bottom: var(--space-sm); justify-content: center;" 
+              onclick="window.selectSubjectToAdd('${sub}')">
+              ${sub}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(picker);
+    picker.showModal();
+    
+    // Global handler for selection
+    window.selectSubjectToAdd = (subjectName) => {
+      const newSubject = {
+        id: `subject-${Date.now()}`,
+        name: subjectName,
+        notes: '',
+        saved: false,
+        lastModified: null
+      };
+      
+      this.state.subjects.push(newSubject);
+      this.state.saveSubjects();
+      this.renderSubjects();
+      picker.close();
+      picker.remove();
+      delete window.selectSubjectToAdd;
+      
+      // Focus new subject input
+      const cards = this.elements.subjectsContainer.querySelectorAll('.subject-card');
+      const lastCard = cards[cards.length - 1];
+      lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      
+      this.state.showToast(`Added: ${subjectName}`, 'success');
     };
-    
-    this.state.subjects.push(newSubject);
-    this.state.saveSubjects();
-    this.renderSubjects();
-    
-    // Focus new subject input
-    const cards = this.elements.subjectsContainer.querySelectorAll('.subject-card');
-    const lastCard = cards[cards.length - 1];
-    lastCard.querySelector('.subject-input').focus();
-    
-    // Smooth scroll to new card
-    lastCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
   
   updateSubjectCounter() {
@@ -424,20 +688,20 @@ class UIController {
     }
     
     if (!isOtherMonth && dateKey) {
-      cell.addEventListener('click', () => this.selectDate(day, dateKey, events));
+      cell.addEventListener('click', (e) => this.selectDate(day, dateKey, events, e.currentTarget));
     }
     
     return cell;
   }
   
-  selectDate(day, dateKey, events) {
+  selectDate(day, dateKey, events, cellElement) {
     this.state.selectedDate = { day, dateKey, events };
     this.elements.eventForm.classList.remove('hidden');
     this.elements.eventTitle.focus();
     
     // Highlight selected day
     document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-    event.currentTarget?.classList.add('selected');
+    cellElement.classList.add('selected');
   }
   
   saveEvent(title) {
@@ -558,14 +822,27 @@ class UIController {
     
     if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
       document.documentElement.setAttribute('data-theme', 'dark');
+      this.updateThemeIcon('dark');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      this.updateThemeIcon('light');
     }
     
     // Listen for system theme changes
     window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
       if (!localStorage.getItem(CONFIG.STORAGE_KEYS.THEME)) {
-        document.documentElement.setAttribute('data-theme', e.matches ? 'dark' : 'light');
+        const newTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        this.updateThemeIcon(newTheme);
       }
     });
+  }
+  
+  updateThemeIcon(theme) {
+    const icon = document.querySelector('#theme-toggle i');
+    if (icon) {
+      icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    }
   }
   
   toggleTheme() {
@@ -574,10 +851,7 @@ class UIController {
     
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
-    
-    // Update icon
-    const icon = document.querySelector('#theme-toggle i');
-    icon.className = next === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    this.updateThemeIcon(next);
   }
   
   // Event Listeners
@@ -672,9 +946,10 @@ class UIController {
         e.preventDefault();
         this.state.subjects.forEach((subject, index) => {
           const card = this.elements.subjectsContainer.children[index];
-          const name = card.querySelector('.subject-input').value;
-          const notes = card.querySelector('.notes-textarea').value;
-          this.saveSubject(index, name, notes, true);
+          if (card) {
+            const notes = card.querySelector('.notes-textarea').value;
+            this.saveSubject(index, subject.name, notes, true);
+          }
         });
       }
       
