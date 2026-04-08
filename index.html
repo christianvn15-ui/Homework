@@ -9,25 +9,25 @@
   
   <!-- iOS PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Homework Book">
   
   <title>Homework Book</title>
   
   <!-- Preload Critical Resources -->
-  <link rel="preload" href="style.css" as="style">
+  <link rel="preload" href="styles.css" as="">
   <link rel="preload" href="app.js" as="script">
   
-  <link rel="stylesheet" href="style.css">
+  <link rel="sheet" href="styles.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192x192.png">
+  <link rel="apple-touch-icon" href="./icon-192.png">
   
   <!-- Font Awesome with display=swap -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" media="print" onload="this.media='all'">
+  <link rel="sheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" media="print" onload="this.media='all'">
   
   <!-- Critical CSS Inline -->
   <style>
-    /* Critical rendering path styles */
+    /* Critical rendering path s */
     :root {
       color-scheme: light dark;
     }
@@ -73,7 +73,7 @@
           <i class="fa-solid fa-calendar-days"></i>
         </button>
         <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">
-          <i class="fa-solid fa-circle-half-stroke"></i>
+          <i class="fa-solid fa-moon"></i>
         </button>
         <button id="install-btn" class="install-btn hidden" aria-label="Install app">
           <i class="fa-solid fa-download"></i>
@@ -81,6 +81,11 @@
         </button>
       </div>
     </header>
+
+    <!-- Event Reminders Banner -->
+    <div id="event-reminders" class="event-reminders-bar hidden" aria-live="polite">
+      <div class="reminders-content"></div>
+    </div>
 
     <!-- Today's Events Preview -->
     <div id="event-display" class="events-bar" aria-live="polite">
@@ -169,6 +174,9 @@
           <button id="clear-history" class="btn-danger">
             <i class="fa-solid fa-trash"></i> Clear History
           </button>
+          <button id="enable-notifications" class="btn-secondary">
+            <i class="fa-solid fa-bell"></i> Enable Notifications
+          </button>
         </div>
         
         <div id="saved-notes" class="notes-history">
@@ -176,7 +184,6 @@
         </div>
       </div>
     </dialog>
-    
 
     <!-- Toast Notifications -->
     <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
@@ -190,7 +197,7 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', async () => {
         try {
-          const registration = await navigator.serviceWorker.register('service-worker.js');
+          const registration = await navigator.serviceWorker.register('./service-worker.js');
           
           // Handle updates
           registration.addEventListener('updatefound', () => {
