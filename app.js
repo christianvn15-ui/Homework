@@ -16,7 +16,8 @@ const CONFIG = {
     THEME: 'theme',
     SUBJECTS: 'subjects',
     SUBJECTS_SELECTED: 'subjectsSelected',
-    NOTIFICATIONS_ENABLED: 'notificationsEnabled'
+    NOTIFICATIONS_ENABLED: 'notificationsEnabled',
+    FINISHED_SUBJECTS: 'finishedSubjects'
   }
 };
 
@@ -39,12 +40,15 @@ class AppState {
     this.deferredPrompt = null;
     this.subjectsSelected = false;
     this.notificationsEnabled = false;
+    this.finishedSubjects = new Set();
   }
   
   async init() {
     await this.loadData();
     this.checkDailyReset();
     this.requestNotificationPermission();
+    this.cleanupOldNotificationFlags();
+    this.loadFinishedSubjects();
     return this;
   }
   
@@ -63,6 +67,64 @@ class AppState {
     if (savedEvents) {
       this.events = new Map(Object.entries(JSON.parse(savedEvents)));
     }
+  }
+  
+  loadFinishedSubjects() {
+    const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS);
+    if (saved) {
+      const data = JSON.parse(saved);
+      const today = new Date().toDateString();
+      // Only load finished subjects from today
+      if (data.date === today) {
+        this.finishedSubjects = new Set(data.subjects);
+      } else {
+        this.finishedSubjects = new Set();
+      }
+    }
+  }
+  
+  saveFinishedSubjects() {
+    const data = {
+      date: new Date().toDateString(),
+      subjects: Array.from(this.finishedSubjects)
+    };
+    localStorage.setItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS, JSON.stringify(data));
+  }
+  
+  markSubjectFinished(subjectId) {
+    this.finishedSubjects.add(subjectId);
+    this.saveFinishedSubjects();
+    
+    // Archive the notes before clearing
+    this.archiveSubjectNotes(subjectId);
+    
+    // Clear the subject notes
+    const subject = this.subjects.find(s => s.id === subjectId);
+    if (subject) {
+      subject.notes = '';
+      subject.saved = false;
+      subject.lastModified = null;
+      this.saveSubjects();
+    }
+  }
+  
+  archiveSubjectNotes(subjectId) {
+    const subject = this.subjects.find(s => s.id === subjectId);
+    if (!subject || !subject.notes.trim()) return;
+    
+    const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [];
+    history.push({
+      date: new Date().toDateString(),
+      subject: subject.name,
+      content: subject.notes,
+      archivedAt: new Date().toISOString(),
+      status: 'finished'
+    });
+    localStorage.setItem(CONFIG.STORAGE_KEYS.NOTES, JSON.stringify(history));
+  }
+  
+  isSubjectFinished(subjectId) {
+    return this.finishedSubjects.has(subjectId);
   }
   
   createDefaultSubjects() {
@@ -138,6 +200,9 @@ class AppState {
           subject.lastModified = null;
         }
       });
+      // Clear finished subjects on new day
+      this.finishedSubjects.clear();
+      this.saveFinishedSubjects();
       this.saveSubjects();
       this.showToast('New day! Notes have been archived.', 'info');
     }
@@ -235,6 +300,33 @@ class AppState {
       }
     });
   }
+  
+  cleanupOldNotificationFlags() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('notified-')) {
+        const eventId = key.replace('notified-', '');
+        let eventExists = false;
+        let eventDate = null;
+        
+        this.events.forEach((events, dateKey) => {
+          const event = events.find(e => e.id === eventId);
+          if (event) {
+            eventExists = true;
+            const [year, month, day] = dateKey.split('-').map(Number);
+            eventDate = new Date(year, month - 1, day);
+          }
+        });
+        
+        if (!eventExists || (eventDate && eventDate < today)) {
+          localStorage.removeItem(key);
+        }
+      }
+    }
+  }
 }
 
 // UI Controller
@@ -268,14 +360,10 @@ class UIController {
     this.renderDate();
     this.initTheme();
     this.renderEventReminders();
+    this.checkAndNotifyUpcomingEvents();
     
-    // Check if subjects need to be selected
-    const needsSubjectSelection = !this.state.subjectsSelected || this.state.subjects.length === 0;
-    console.log('Subjects selected:', this.state.subjectsSelected, 'Subjects count:', this.state.subjects.length, 'Needs selection:', needsSubjectSelection);
-    
-    if (needsSubjectSelection) {
-      // Small delay to ensure DOM is ready
-      setTimeout(() => this.showSubjectPicker(), 100);
+    if (!this.state.subjectsSelected || this.state.subjects.length === 0) {
+      this.showSubjectPicker();
     } else {
       this.renderSubjects();
       this.renderTodayEvents();
@@ -287,6 +375,27 @@ class UIController {
     if ('requestIdleCallback' in window) {
       requestIdleCallback(() => this.idleInitialization());
     }
+  }
+  
+  checkAndNotifyUpcomingEvents() {
+    if (!this.state.notificationsEnabled || !('Notification' in window)) return;
+    
+    const upcoming = this.state.getUpcomingEvents();
+    const twoDaysAway = upcoming.filter(event => event.daysRemaining === 2);
+    
+    twoDaysAway.forEach(event => {
+      const notifiedKey = `notified-${event.id}`;
+      if (localStorage.getItem(notifiedKey)) return;
+      
+      new Notification('📅 Event Reminder', {
+        body: `${event.title} - 2 days remaining!`,
+        icon: './icon-192.png',
+        badge: './icon-192.png',
+        tag: event.id
+      });
+      
+      localStorage.setItem(notifiedKey, 'true');
+    });
   }
   
   renderEventReminders() {
@@ -316,14 +425,6 @@ class UIController {
   }
   
   showSubjectPicker() {
-    console.log('Showing subject picker');
-    
-    // Remove any existing picker
-    const existingPicker = document.getElementById('subject-picker');
-    if (existingPicker) {
-      existingPicker.remove();
-    }
-    
     const picker = document.createElement('div');
     picker.id = 'subject-picker';
     picker.className = 'subject-picker-overlay';
@@ -355,10 +456,9 @@ class UIController {
     
     document.body.appendChild(picker);
     
-    // Add inline styles for the picker
     const style = document.createElement('style');
     style.textContent = `
-      .subject-picker-overlay {
+      .subject-picker-overlay { 
         position: fixed;
         top: 0;
         left: 0;
@@ -372,7 +472,7 @@ class UIController {
         justify-content: center;
         padding: 1rem;
       }
-      .subject-picker-modal {
+      .subject-picker-modal { 
         background: var(--color-surface, #ffffff);
         border-radius: 16px;
         width: min(95vw, 600px);
@@ -382,17 +482,13 @@ class UIController {
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
         overflow: hidden;
       }
-      .picker-header {
+      .picker-header { 
         padding: 1.5rem;
         border-bottom: 1px solid var(--color-border, #e0e0e0);
         background: var(--color-surface-elevated, #f8f9fa);
       }
-      .picker-header h2 {
-        margin: 0;
-        font-size: 1.5rem;
-        color: var(--color-text, #1a1a1a);
-      }
-      .picker-instructions {
+      .picker-header h2 { margin: 0; font-size: 1.5rem; color: var(--color-text, #1a1a1a); }
+      .picker-instructions { 
         padding: 1rem 1.5rem;
         background: var(--color-bg, #fdfdfd);
         border-bottom: 1px solid var(--color-border, #e0e0e0);
@@ -400,16 +496,9 @@ class UIController {
         justify-content: space-between;
         align-items: center;
       }
-      .picker-instructions p {
-        margin: 0;
-        color: var(--color-text-secondary, #666666);
-      }
-      .selection-count {
-        font-weight: 700;
-        color: var(--color-primary, #0077ff);
-        font-size: 1.125rem;
-      }
-      .subjects-picker-grid {
+      .picker-instructions p { margin: 0; color: var(--color-text-secondary, #666666); }
+      .selection-count { font-weight: 700; color: var(--color-primary, #0077ff); font-size: 1.125rem; }
+      .subjects-picker-grid { 
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         gap: 0.75rem;
@@ -418,7 +507,7 @@ class UIController {
         overflow-y: auto;
         background: var(--color-surface, #ffffff);
       }
-      .subject-option {
+      .subject-option { 
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -429,20 +518,10 @@ class UIController {
         cursor: pointer;
         transition: all 0.15s ease;
       }
-      .subject-option:hover {
-        border-color: var(--color-primary, #0077ff);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      .subject-option.selected {
-        background: var(--color-primary, #0077ff);
-        border-color: var(--color-primary, #0077ff);
-        color: white;
-      }
-      .subject-option input {
-        display: none;
-      }
-      .checkmark {
+      .subject-option:hover { border-color: var(--color-primary, #0077ff); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+      .subject-option.selected { background: var(--color-primary, #0077ff); border-color: var(--color-primary, #0077ff); color: white; }
+      .subject-option input { display: none; }
+      .checkmark { 
         width: 20px;
         height: 20px;
         border: 2px solid var(--color-border, #e0e0e0);
@@ -453,36 +532,18 @@ class UIController {
         transition: all 0.15s ease;
         flex-shrink: 0;
       }
-      .subject-option.selected .checkmark {
-        background: white;
-        border-color: white;
-      }
-      .subject-option.selected .checkmark::after {
-        content: '✓';
-        color: var(--color-primary, #0077ff);
-        font-weight: bold;
-        font-size: 14px;
-      }
-      .subject-name {
-        font-weight: 500;
-        font-size: 0.9375rem;
-      }
-      .picker-actions {
+      .subject-option.selected .checkmark { background: white; border-color: white; }
+      .subject-option.selected .checkmark::after { content: '✓'; color: var(--color-primary, #0077ff); font-weight: bold; font-size: 14px; }
+      .subject-name { font-weight: 500; font-size: 0.9375rem; }
+      .picker-actions { 
         padding: 1.5rem;
         border-top: 1px solid var(--color-border, #e0e0e0);
         display: flex;
         justify-content: center;
         background: var(--color-surface-elevated, #f8f9fa);
       }
-      #confirm-subjects {
-        padding: 0.875rem 2rem;
-        font-size: 1rem;
-        min-width: 200px;
-      }
-      #confirm-subjects:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
+      #confirm-subjects { padding: 0.875rem 2rem; font-size: 1rem; min-width: 200px; }
+      #confirm-subjects:disabled { opacity: 0.5; cursor: not-allowed; }
       .btn-primary {
         background: var(--color-primary, #0077ff);
         color: white;
@@ -492,45 +553,18 @@ class UIController {
         cursor: pointer;
         transition: all 0.15s ease;
       }
-      .btn-primary:hover:not(:disabled) {
-        background: var(--color-primary-hover, #005fcc);
-        transform: translateY(-1px);
-      }
+      .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover, #005fcc); transform: translateY(-1px); }
       
-      /* Dark mode support */
       @media (prefers-color-scheme: dark) {
-        .subject-picker-modal {
-          background: #1a1a1a;
-        }
-        .picker-header {
-          background: #242424;
-          border-color: #333333;
-        }
-        .picker-header h2 {
-          color: #f5f5f5;
-        }
-        .picker-instructions {
-          background: #0f0f0f;
-          border-color: #333333;
-        }
-        .picker-instructions p {
-          color: #a0a0a0;
-        }
-        .subjects-picker-grid {
-          background: #1a1a1a;
-        }
-        .subject-option {
-          background: #242424;
-          border-color: #333333;
-          color: #f5f5f5;
-        }
-        .subject-option:hover {
-          border-color: #4dabf7;
-        }
-        .picker-actions {
-          background: #242424;
-          border-color: #333333;
-        }
+        .subject-picker-modal { background: #1a1a1a; }
+        .picker-header { background: #242424; border-color: #333333; }
+        .picker-header h2 { color: #f5f5f5; }
+        .picker-instructions { background: #0f0f0f; border-color: #333333; }
+        .picker-instructions p { color: #a0a0a0; }
+        .subjects-picker-grid { background: #1a1a1a; }
+        .subject-option { background: #242424; border-color: #333333; color: #f5f5f5; }
+        .subject-option:hover { border-color: #4dabf7; }
+        .picker-actions { background: #242424; border-color: #333333; }
       }
     `;
     document.head.appendChild(style);
@@ -610,21 +644,30 @@ class UIController {
   }
   
   createSubjectCard(subject, index) {
+    const isFinished = this.state.isSubjectFinished(subject.id);
     const card = document.createElement('div');
-    card.className = `subject-card ${subject.saved ? 'saved' : ''}`;
+    card.className = `subject-card ${subject.saved ? 'saved' : ''} ${isFinished ? 'finished' : ''}`;
     card.dataset.id = subject.id;
     card.innerHTML = `
-      <input type="text" class="subject-input" placeholder="Subject name" value="${subject.name}" aria-label="Subject name" readonly>
-      <textarea class="notes-textarea" placeholder="Write your homework notes here..." aria-label="Notes for ${subject.name}">${subject.notes}</textarea>
+      <input type="text" class="subject-input" placeholder="Subject name" value="${subject.name}" aria-label="Subject name" readonly ${isFinished ? 'disabled' : ''}>
+      <textarea class="notes-textarea" placeholder="${isFinished ? 'Finished for today! Come back tomorrow for new homework.' : 'Write your homework notes here...'}" aria-label="Notes for ${subject.name}" ${isFinished ? 'disabled' : ''}>${isFinished ? '' : subject.notes}</textarea>
       <div class="card-actions">
-        <button class="btn-icon delete" aria-label="Delete subject" title="Delete"><i class="fa-solid fa-trash"></i></button>
-        <button class="btn-icon save" aria-label="Save notes" title="Save"><i class="fa-solid fa-check"></i></button>
+        ${isFinished ? `
+          <span class="finished-badge"><i class="fa-solid fa-check-circle"></i> Done</span>
+        ` : `
+          <button class="btn-icon delete" aria-label="Delete subject" title="Delete"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn-icon save" aria-label="Save notes" title="Save"><i class="fa-solid fa-check"></i></button>
+          <button class="btn-icon finish" aria-label="Mark as finished" title="Finished"><i class="fa-solid fa-flag-checkered"></i></button>
+        `}
       </div>
     `;
+    
+    if (isFinished) return card;
     
     const textarea = card.querySelector('.notes-textarea');
     const saveBtn = card.querySelector('.btn-icon.save');
     const deleteBtn = card.querySelector('.btn-icon.delete');
+    const finishBtn = card.querySelector('.btn-icon.finish');
     
     let debounceTimer;
     const autoSave = () => {
@@ -648,7 +691,24 @@ class UIController {
       }
     });
     
+    finishBtn.addEventListener('click', () => {
+      if (!textarea.value.trim()) {
+        this.state.showToast('Add some notes before marking as finished!', 'error');
+        return;
+      }
+      if (confirm(`Mark ${subject.name} as finished? This will save your notes and clear the field for tomorrow.`)) {
+        this.finishSubject(subject.id, index);
+      }
+    });
+    
     return card;
+  }
+  
+  finishSubject(subjectId, index) {
+    this.state.markSubjectFinished(subjectId);
+    this.state.showToast('Subject marked as finished! Great job!', 'success');
+    this.renderSubjects();
+    this.updateSubjectCounter();
   }
   
   saveSubject(index, name, notes, manual = false) {
@@ -719,7 +779,9 @@ class UIController {
   }
   
   updateSubjectCounter() {
-    this.elements.subjectCounter.textContent = `${this.state.subjects.length}/${CONFIG.MAX_SUBJECTS} subjects`;
+    const finishedCount = this.state.finishedSubjects.size;
+    const total = this.state.subjects.length;
+    this.elements.subjectCounter.textContent = `${finishedCount}/${total} finished • ${total}/${CONFIG.MAX_SUBJECTS} subjects`;
   }
   
   renderCalendar() {
@@ -838,6 +900,7 @@ class UIController {
         <div class="date">${new Date(entry.date).toLocaleDateString()}</div>
         <div class="subject">${entry.subject || 'Untitled'}</div>
         <div class="content">${entry.content}</div>
+        ${entry.status ? `<span class="status-badge">${entry.status}</span>` : ''}
       </div>
     `).join('');
   }
