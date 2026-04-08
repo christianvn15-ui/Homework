@@ -1,14 +1,25 @@
-// app.js - Modern JavaScript with ES6+ features, performance optimizations, and clean architecture
+// app.js - Multilingual Homework Book PWA with Modern ES6+ Architecture
 
 /**
  * Homework Book PWA - Main Application
- * Features: Modern ES6+, Event Reminders, Notifications, Calendar
+ * Features: Modern ES6+, Multilingual Support, Event Reminders, Notifications, Calendar
  */
 
 // Configuration
 const CONFIG = {
   MAX_SUBJECTS: 7,
-  REMINDER_DAYS: 7, // Show reminders from 7 days before
+  REMINDER_DAYS: 7,
+  LANGUAGES: {
+    en: { name: 'English', native: 'English', flag: '🇬🇧', dir: 'ltr' },
+    af: { name: 'Afrikaans', native: 'Afrikaans', flag: '🇿🇦', dir: 'ltr' },
+    es: { name: 'Spanish', native: 'Español', flag: '🇪🇸', dir: 'ltr' },
+    nl: { name: 'Dutch', native: 'Nederlands', flag: '🇳🇱', dir: 'ltr' },
+    st: { name: 'Sotho', native: 'Sesotho', flag: '🇱🇸', dir: 'ltr' },
+    fr: { name: 'French', native: 'Français', flag: '🇫🇷', dir: 'ltr' },
+    it: { name: 'Italian', native: 'Italiano', flag: '🇮🇹', dir: 'ltr' },
+    ja: { name: 'Japanese', native: '日本語', flag: '🇯🇵', dir: 'ltr' },
+    zh: { name: 'Chinese', native: '中文', flag: '🇨🇳', dir: 'ltr' }
+  },
   STORAGE_KEYS: {
     NOTES: 'notesHistory',
     EVENTS: 'events',
@@ -17,7 +28,427 @@ const CONFIG = {
     SUBJECTS: 'subjects',
     SUBJECTS_SELECTED: 'subjectsSelected',
     NOTIFICATIONS_ENABLED: 'notificationsEnabled',
+    LANGUAGE: 'language',
+    LANGUAGE_SELECTED: 'languageSelected',
     FINISHED_SUBJECTS: 'finishedSubjects'
+  }
+};
+
+// Complete Translations
+const TRANSLATIONS = {
+  en: {
+    homeworkNotes: 'Homework Notes',
+    calendar: 'Calendar',
+    addEvent: 'Add Event',
+    eventTitle: 'Event title',
+    cancel: 'Cancel',
+    saveEvent: 'Save Event',
+    notesHistory: 'Notes History',
+    exportData: 'Export Data',
+    clearHistory: 'Clear History',
+    enableNotifications: 'Enable Notifications',
+    noSavedNotes: 'No saved notes yet',
+    noEventsToday: 'No events today',
+    selectLanguage: 'Select Language',
+    chooseLanguage: 'Choose your preferred language',
+    selectSubjects: 'Select Your 7 Subjects',
+    chooseSubjects: 'Choose exactly 7 subjects from the list below',
+    subjectsSelected: 'subjects selected',
+    confirm: 'Confirm',
+    save: 'Save',
+    delete: 'Delete',
+    finish: 'Finish',
+    finished: 'Finished',
+    done: 'Done',
+    addSubject: 'Add Subject',
+    maxSubjects: 'Maximum 7 subjects allowed',
+    subjectDeleted: 'Subject deleted',
+    cannotDelete: 'Cannot delete last subject',
+    saved: 'Saved',
+    newDay: 'New day! Notes have been archived',
+    finishConfirm: 'Mark {subject} as finished? This will save your notes.',
+    addNotesFirst: 'Add some notes before marking as finished!',
+    greatJob: 'Great job! Subject marked as finished!',
+    notificationsEnabled: 'Notifications enabled!',
+    notificationDenied: 'Notification permission denied',
+    dataExported: 'Data exported successfully',
+    historyCleared: 'History cleared',
+    sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat',
+    today: 'Today',
+    daysLeft: 'days left',
+    dayLeft: 'day left',
+    eventReminder: 'Event Reminder',
+    newEventAdded: 'New Event Added',
+    update: 'Update',
+    newVersion: 'New version available!'
+  },
+  af: {
+    homeworkNotes: 'Huiswerk Notas',
+    calendar: 'Kalender',
+    addEvent: 'Voeg Gebeurtenis By',
+    eventTitle: 'Gebeurtenis titel',
+    cancel: 'Kanselleer',
+    saveEvent: 'Stoor Gebeurtenis',
+    notesHistory: 'Notas Geskiedenis',
+    exportData: 'Voer Data Uit',
+    clearHistory: 'Maak Geskiedenis Skoon',
+    enableNotifications: 'Aktiveer Kennisgewings',
+    noSavedNotes: 'Nog geen gestoorde notas nie',
+    noEventsToday: 'Geen gebeurtenisse vandag nie',
+    selectLanguage: 'Kies Taal',
+    chooseLanguage: 'Kies jou voorkeurtaal',
+    selectSubjects: 'Kies Jou 7 Vakke',
+    chooseSubjects: 'Kies presies 7 vakke uit die lys hieronder',
+    subjectsSelected: 'vakke gekies',
+    confirm: 'Bevestig',
+    save: 'Stoor',
+    delete: 'Vee uit',
+    finish: 'Klaar',
+    finished: 'Klaar',
+    done: 'Klaar',
+    addSubject: 'Voeg Vak By',
+    maxSubjects: 'Maksimum 7 vakke toegelaat',
+    subjectDeleted: 'Vak uitgevee',
+    cannotDelete: 'Kan nie laaste vak uitvee nie',
+    saved: 'Gestoor',
+    newDay: 'Nuwe dag! Notas is geargiveer',
+    finishConfirm: 'Merk {subject} as klaar? Dit sal jou notas stoor.',
+    addNotesFirst: 'Voeg notas by voordat jy as klaar merk!',
+    greatJob: 'Goed gedoen! Vak as klaar gemerk!',
+    notificationsEnabled: 'Kennisgewings geaktiveer!',
+    notificationDenied: 'Kennisgewing toestemming geweier',
+    dataExported: 'Data suksesvol uitgevoer',
+    historyCleared: 'Geskiedenis skoongemaak',
+    sun: 'Son', mon: 'Maa', tue: 'Din', wed: 'Woe', thu: 'Don', fri: 'Vry', sat: 'Sat',
+    today: 'Vandag',
+    daysLeft: 'dae oor',
+    dayLeft: 'dag oor',
+    eventReminder: 'Gebeurtenis Herinnering',
+    newEventAdded: 'Nuwe Gebeurtenis Bygevoeg',
+    update: 'Opdateer',
+    newVersion: 'Nuwe weergawe beskikbaar!'
+  },
+  es: {
+    homeworkNotes: 'Notas de Tarea',
+    calendar: 'Calendario',
+    addEvent: 'Añadir Evento',
+    eventTitle: 'Título del evento',
+    cancel: 'Cancelar',
+    saveEvent: 'Guardar Evento',
+    notesHistory: 'Historial de Notas',
+    exportData: 'Exportar Datos',
+    clearHistory: 'Borrar Historial',
+    enableNotifications: 'Activar Notificaciones',
+    noSavedNotes: 'Aún no hay notas guardadas',
+    noEventsToday: 'No hay eventos hoy',
+    selectLanguage: 'Seleccionar Idioma',
+    chooseLanguage: 'Elige tu idioma preferido',
+    selectSubjects: 'Selecciona Tus 7 Asignaturas',
+    chooseSubjects: 'Elige exactamente 7 asignaturas de la lista',
+    subjectsSelected: 'asignaturas seleccionadas',
+    confirm: 'Confirmar',
+    save: 'Guardar',
+    delete: 'Eliminar',
+    finish: 'Terminar',
+    finished: 'Terminado',
+    done: 'Hecho',
+    addSubject: 'Añadir Asignatura',
+    maxSubjects: 'Máximo 7 asignaturas permitidas',
+    subjectDeleted: 'Asignatura eliminada',
+    cannotDelete: 'No se puede eliminar la última asignatura',
+    saved: 'Guardado',
+    newDay: '¡Nuevo día! Las notas han sido archivadas',
+    finishConfirm: '¿Marcar {subject} como terminado? Esto guardará tus notas.',
+    addNotesFirst: '¡Añade notas antes de marcar como terminado!',
+    greatJob: '¡Buen trabajo! ¡Asignatura marcada como terminada!',
+    notificationsEnabled: '¡Notificaciones activadas!',
+    notificationDenied: 'Permiso de notificación denegado',
+    dataExported: 'Datos exportados exitosamente',
+    historyCleared: 'Historial borrado',
+    sun: 'Dom', mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue', fri: 'Vie', sat: 'Sáb',
+    today: 'Hoy',
+    daysLeft: 'días restantes',
+    dayLeft: 'día restante',
+    eventReminder: 'Recordatorio de Evento',
+    newEventAdded: 'Nuevo Evento Añadido',
+    update: 'Actualizar',
+    newVersion: '¡Nueva versión disponible!'
+  },
+  nl: {
+    homeworkNotes: 'Huiswerk Notities',
+    calendar: 'Kalender',
+    addEvent: 'Evenement Toevoegen',
+    eventTitle: 'Evenement titel',
+    cancel: 'Annuleren',
+    saveEvent: 'Evenement Opslaan',
+    notesHistory: 'Notities Geschiedenis',
+    exportData: 'Data Exporteren',
+    clearHistory: 'Geschiedenis Wissen',
+    enableNotifications: 'Meldingen Inschakelen',
+    noSavedNotes: 'Nog geen opgeslagen notities',
+    noEventsToday: 'Geen evenementen vandaag',
+    selectLanguage: 'Taal Selecteren',
+    chooseLanguage: 'Kies je voorkeurstaal',
+    selectSubjects: 'Selecteer Je 7 Vakken',
+    chooseSubjects: 'Kies precies 7 vakken uit de lijst',
+    subjectsSelected: 'vakken geselecteerd',
+    confirm: 'Bevestigen',
+    save: 'Opslaan',
+    delete: 'Verwijderen',
+    finish: 'Afronden',
+    finished: 'Afgerond',
+    done: 'Klaar',
+    addSubject: 'Vak Toevoegen',
+    maxSubjects: 'Maximum 7 vakken toegestaan',
+    subjectDeleted: 'Vak verwijderd',
+    cannotDelete: 'Kan laatste vak niet verwijderen',
+    saved: 'Opgeslagen',
+    newDay: 'Nieuwe dag! Notities zijn gearchiveerd',
+    finishConfirm: '{subject} markeren als afgerond? Dit slaat je notities op.',
+    addNotesFirst: 'Voeg notities toe voordat je als afgerond markeert!',
+    greatJob: 'Goed gedaan! Vak gemarkeerd als afgerond!',
+    notificationsEnabled: 'Meldingen ingeschakeld!',
+    notificationDenied: 'Melding toestemming geweigerd',
+    dataExported: 'Data succesvol geëxporteerd',
+    historyCleared: 'Geschiedenis gewist',
+    sun: 'Zo', mon: 'Ma', tue: 'Di', wed: 'Wo', thu: 'Do', fri: 'Vr', sat: 'Za',
+    today: 'Vandaag',
+    daysLeft: 'dagen resterend',
+    dayLeft: 'dag resterend',
+    eventReminder: 'Evenement Herinnering',
+    newEventAdded: 'Nieuw Evenement Toegevoegd',
+    update: 'Bijwerken',
+    newVersion: 'Nieuwe versie beschikbaar!'
+  },
+  st: {
+    homeworkNotes: 'Lintlha tsa Mosebetsi oa Lehae',
+    calendar: 'Khalendara',
+    addEvent: 'Kenya Mohlolo',
+    eventTitle: 'Sehlooho sa mohlolong',
+    cancel: 'Hlakola',
+    saveEvent: 'Boloka Mohlolo',
+    notesHistory: 'Nalane ya Lintlha',
+    exportData: 'Romella Data',
+    clearHistory: 'Hlakola Nalane',
+    enableNotifications: 'Bahela Tsebiso',
+    noSavedNotes: 'Ha ho lintlha tse bolokilweng',
+    noEventsToday: 'Ha ho mehlolo kajeno',
+    selectLanguage: 'Khetha Puo',
+    chooseLanguage: 'Khetha puo eo o e ratang',
+    selectSubjects: 'Khetha Likhaolo tsa hao tse 7',
+    chooseSubjects: 'Khetha likhaolo tse 7 feela ho tswa lenaneng',
+    subjectsSelected: 'likhaolo tse khethilweng',
+    confirm: 'Netefatsa',
+    save: 'Boloka',
+    delete: 'Hlakola',
+    finish: 'Qetella',
+    finished: 'Qetilwe',
+    done: 'Etswe',
+    addSubject: 'Kenya Khaolo',
+    maxSubjects: 'Likhaolo tse 7 feela tse lumelloang',
+    subjectDeleted: 'Khaolo e hlakotswe',
+    cannotDelete: 'E ka se hlakole khaolo ea ho qetela',
+    saved: 'E bolokilwe',
+    newDay: "Letsatsi le lecha! Lintlha li bolokilwe",
+    finishConfirm: 'Marka {subject} e qetilwe? E tla boloka lintlha tsa hao.',
+    addNotesFirst: 'Kenya lintlha pele o marka e qetilwe!',
+    greatJob: 'Mosebetsi o motle! Khaolo e markilwe e qetilwe!',
+    notificationsEnabled: 'Tsebiso e bahetswe!',
+    notificationDenied: 'Tumello ea tsebiso e hanoetse',
+    dataExported: 'Data e rometswe ka katleho',
+    historyCleared: 'Nalane e hlakotswe',
+    sun: 'Sont', mon: 'Mant', tue: 'Lab', wed: 'Labob', thu: 'Labone', fri: 'Labohl', sat: 'Moq',
+    today: 'Kajeno',
+    daysLeft: 'matsatsi a setseng',
+    dayLeft: 'letsatsi le setseng',
+    eventReminder: 'Tsebiso ea Mohlolo',
+    newEventAdded: 'Mohlolo o Montšha o Kenyelletswe',
+    update: 'Ntlafatsa',
+    newVersion: 'Mofuta o mocha o fumaneha!'
+  },
+  fr: {
+    homeworkNotes: 'Notes de Devoirs',
+    calendar: 'Calendrier',
+    addEvent: 'Ajouter un Événement',
+    eventTitle: "Titre de l'événement",
+    cancel: 'Annuler',
+    saveEvent: "Enregistrer l'Événement",
+    notesHistory: 'Historique des Notes',
+    exportData: 'Exporter les Données',
+    clearHistory: "Effacer l'Historique",
+    enableNotifications: 'Activer les Notifications',
+    noSavedNotes: 'Aucune note enregistrée',
+    noEventsToday: "Aucun événement aujourd'hui",
+    selectLanguage: 'Choisir la Langue',
+    chooseLanguage: 'Choisissez votre langue préférée',
+    selectSubjects: 'Sélectionnez Vos 7 Matières',
+    chooseSubjects: 'Choisissez exactement 7 matières dans la liste',
+    subjectsSelected: 'matières sélectionnées',
+    confirm: 'Confirmer',
+    save: 'Enregistrer',
+    delete: 'Supprimer',
+    finish: 'Terminer',
+    finished: 'Terminé',
+    done: 'Fait',
+    addSubject: 'Ajouter une Matière',
+    maxSubjects: 'Maximum 7 matières autorisées',
+    subjectDeleted: 'Matière supprimée',
+    cannotDelete: 'Impossible de supprimer la dernière matière',
+    saved: 'Enregistré',
+    newDay: 'Nouveau jour ! Les notes ont été archivées',
+    finishConfirm: 'Marquer {subject} comme terminé ? Cela enregistrera vos notes.',
+    addNotesFirst: 'Ajoutez des notes avant de marquer comme terminé !',
+    greatJob: 'Bon travail ! Matière marquée comme terminée !',
+    notificationsEnabled: 'Notifications activées !',
+    notificationDenied: 'Permission de notification refusée',
+    dataExported: 'Données exportées avec succès',
+    historyCleared: 'Historique effacé',
+    sun: 'Dim', mon: 'Lun', tue: 'Mar', wed: 'Mer', thu: 'Jeu', fri: 'Ven', sat: 'Sam',
+    today: "Aujourd'hui",
+    daysLeft: 'jours restants',
+    dayLeft: 'jour restant',
+    eventReminder: 'Rappel Événement',
+    newEventAdded: 'Nouvel Événement Ajouté',
+    update: 'Mettre à jour',
+    newVersion: 'Nouvelle version disponible !'
+  },
+  it: {
+    homeworkNotes: 'Note dei Compiti',
+    calendar: 'Calendario',
+    addEvent: 'Aggiungi Evento',
+    eventTitle: 'Titolo evento',
+    cancel: 'Annulla',
+    saveEvent: 'Salva Evento',
+    notesHistory: 'Cronologia Note',
+    exportData: 'Esporta Dati',
+    clearHistory: 'Cancella Cronologia',
+    enableNotifications: 'Abilita Notifiche',
+    noSavedNotes: 'Nessuna nota salvata',
+    noEventsToday: 'Nessun evento oggi',
+    selectLanguage: 'Seleziona Lingua',
+    chooseLanguage: 'Scegli la tua lingua preferita',
+    selectSubjects: 'Seleziona le Tue 7 Materie',
+    chooseSubjects: 'Scegli esattamente 7 materie dalla lista',
+    subjectsSelected: 'materie selezionate',
+    confirm: 'Conferma',
+    save: 'Salva',
+    delete: 'Elimina',
+    finish: 'Termina',
+    finished: 'Terminato',
+    done: 'Fatto',
+    addSubject: 'Aggiungi Materia',
+    maxSubjects: 'Massimo 7 materie consentite',
+    subjectDeleted: 'Materia eliminata',
+    cannotDelete: 'Impossibile eliminare l\'ultima materia',
+    saved: 'Salvato',
+    newDay: 'Nuovo giorno! Le note sono state archiviate',
+    finishConfirm: 'Contrassegnare {subject} come terminato? Questo salverà le tue note.',
+    addNotesFirst: 'Aggiungi note prima di contrassegnare come terminato!',
+    greatJob: 'Ottimo lavoro! Materia contrassegnata come terminata!',
+    notificationsEnabled: 'Notifiche abilitate!',
+    notificationDenied: 'Permesso notifica negato',
+    dataExported: 'Dati esportati con successo',
+    historyCleared: 'Cronologia cancellata',
+    sun: 'Dom', mon: 'Lun', tue: 'Mar', wed: 'Mer', thu: 'Gio', fri: 'Ven', sat: 'Sab',
+    today: 'Oggi',
+    daysLeft: 'giorni rimasti',
+    dayLeft: 'giorno rimasto',
+    eventReminder: 'Promemoria Evento',
+    newEventAdded: 'Nuovo Evento Aggiunto',
+    update: 'Aggiorna',
+    newVersion: 'Nuova versione disponibile!'
+  },
+  ja: {
+    homeworkNotes: '宿題ノート',
+    calendar: 'カレンダー',
+    addEvent: 'イベントを追加',
+    eventTitle: 'イベントタイトル',
+    cancel: 'キャンセル',
+    saveEvent: 'イベントを保存',
+    notesHistory: 'ノート履歴',
+    exportData: 'データをエクスポート',
+    clearHistory: '履歴をクリア',
+    enableNotifications: '通知を有効化',
+    noSavedNotes: '保存されたノートはありません',
+    noEventsToday: '今日のイベントはありません',
+    selectLanguage: '言語を選択',
+    chooseLanguage: '優先言語を選択してください',
+    selectSubjects: '7科目を選択',
+    chooseSubjects: 'リストから正確に7科目を選択してください',
+    subjectsSelected: '科目選択済み',
+    confirm: '確認',
+    save: '保存',
+    delete: '削除',
+    finish: '完了',
+    finished: '完了済み',
+    done: '完了',
+    addSubject: '科目を追加',
+    maxSubjects: '最大7科目まで',
+    subjectDeleted: '科目を削除しました',
+    cannotDelete: '最後の科目は削除できません',
+    saved: '保存済み',
+    newDay: '新しい日！ノートがアーカイブされました',
+    finishConfirm: '{subject}を完了としてマークしますか？これによりノートが保存されます。',
+    addNotesFirst: '完了としてマークする前にノートを追加してください！',
+    greatJob: 'よくできました！科目が完了としてマークされました！',
+    notificationsEnabled: '通知が有効になりました！',
+    notificationDenied: '通知の許可が拒否されました',
+    dataExported: 'データのエクスポートに成功しました',
+    historyCleared: '履歴をクリアしました',
+    sun: '日', mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土',
+    today: '今日',
+    daysLeft: '日残り',
+    dayLeft: '日残り',
+    eventReminder: 'イベントリマインダー',
+    newEventAdded: '新しいイベントが追加されました',
+    update: '更新',
+    newVersion: '新しいバージョンが利用可能です！'
+  },
+  zh: {
+    homeworkNotes: '作业笔记',
+    calendar: '日历',
+    addEvent: '添加事件',
+    eventTitle: '事件标题',
+    cancel: '取消',
+    saveEvent: '保存事件',
+    notesHistory: '笔记历史',
+    exportData: '导出数据',
+    clearHistory: '清除历史',
+    enableNotifications: '启用通知',
+    noSavedNotes: '暂无保存的笔记',
+    noEventsToday: '今天没有事件',
+    selectLanguage: '选择语言',
+    chooseLanguage: '选择您的首选语言',
+    selectSubjects: '选择您的7个科目',
+    chooseSubjects: '从列表中恰好选择7个科目',
+    subjectsSelected: '个科目已选择',
+    confirm: '确认',
+    save: '保存',
+    delete: '删除',
+    finish: '完成',
+    finished: '已完成',
+    done: '完成',
+    addSubject: '添加科目',
+    maxSubjects: '最多允许7个科目',
+    subjectDeleted: '科目已删除',
+    cannotDelete: '无法删除最后一个科目',
+    saved: '已保存',
+    newDay: '新的一天！笔记已归档',
+    finishConfirm: '将{subject}标记为完成？这将保存您的笔记。',
+    addNotesFirst: '在标记为完成之前先添加一些笔记！',
+    greatJob: '干得好！科目已标记为完成！',
+    notificationsEnabled: '通知已启用！',
+    notificationDenied: '通知权限被拒绝',
+    dataExported: '数据导出成功',
+    historyCleared: '历史已清除',
+    sun: '日', mon: '一', tue: '二', wed: '三', thu: '四', fri: '五', sat: '六',
+    today: '今天',
+    daysLeft: '天后',
+    dayLeft: '天后',
+    eventReminder: '事件提醒',
+    newEventAdded: '新事件已添加',
+    update: '更新',
+    newVersion: '新版本可用！'
   }
 };
 
@@ -41,6 +472,8 @@ class AppState {
     this.subjectsSelected = false;
     this.notificationsEnabled = false;
     this.finishedSubjects = new Set();
+    this.currentLanguage = 'en';
+    this.languageSelected = false;
   }
   
   async init() {
@@ -55,6 +488,8 @@ class AppState {
   async loadData() {
     this.subjectsSelected = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED) === 'true';
     this.notificationsEnabled = localStorage.getItem(CONFIG.STORAGE_KEYS.NOTIFICATIONS_ENABLED) === 'true';
+    this.languageSelected = localStorage.getItem(CONFIG.STORAGE_KEYS.LANGUAGE_SELECTED) === 'true';
+    this.currentLanguage = localStorage.getItem(CONFIG.STORAGE_KEYS.LANGUAGE) || 'en';
     
     const savedSubjects = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS);
     if (savedSubjects) {
@@ -74,7 +509,6 @@ class AppState {
     if (saved) {
       const data = JSON.parse(saved);
       const today = new Date().toDateString();
-      // Only load finished subjects from today
       if (data.date === today) {
         this.finishedSubjects = new Set(data.subjects);
       } else {
@@ -94,11 +528,8 @@ class AppState {
   markSubjectFinished(subjectId) {
     this.finishedSubjects.add(subjectId);
     this.saveFinishedSubjects();
-    
-    // Archive the notes before clearing
     this.archiveSubjectNotes(subjectId);
     
-    // Clear the subject notes
     const subject = this.subjects.find(s => s.id === subjectId);
     if (subject) {
       subject.notes = '';
@@ -151,6 +582,22 @@ class AppState {
     this.saveSubjects();
   }
   
+  setLanguage(langCode) {
+    if (CONFIG.LANGUAGES[langCode]) {
+      this.currentLanguage = langCode;
+      localStorage.setItem(CONFIG.STORAGE_KEYS.LANGUAGE, langCode);
+      localStorage.setItem(CONFIG.STORAGE_KEYS.LANGUAGE_SELECTED, 'true');
+      this.languageSelected = true;
+      return true;
+    }
+    return false;
+  }
+  
+  t(key, replacements = {}) {
+    const translation = TRANSLATIONS[this.currentLanguage]?.[key] || TRANSLATIONS.en[key] || key;
+    return translation.replace(/\{(\w+)\}/g, (match, key) => replacements[key] || match);
+  }
+  
   saveSubjects() {
     localStorage.setItem(CONFIG.STORAGE_KEYS.SUBJECTS, JSON.stringify(this.subjects));
   }
@@ -170,7 +617,7 @@ class AppState {
   
   async enableNotifications() {
     if (!('Notification' in window)) {
-      this.showToast('Notifications not supported in this browser', 'error');
+      this.showToast(this.t('notificationDenied'), 'error');
       return false;
     }
     
@@ -178,11 +625,11 @@ class AppState {
     if (permission === 'granted') {
       this.notificationsEnabled = true;
       localStorage.setItem(CONFIG.STORAGE_KEYS.NOTIFICATIONS_ENABLED, 'true');
-      this.showToast('Notifications enabled!', 'success');
+      this.showToast(this.t('notificationsEnabled'), 'success');
       this.sendReminderNotifications();
       return true;
     } else {
-      this.showToast('Notification permission denied', 'error');
+      this.showToast(this.t('notificationDenied'), 'error');
       return false;
     }
   }
@@ -200,11 +647,10 @@ class AppState {
           subject.lastModified = null;
         }
       });
-      // Clear finished subjects on new day
       this.finishedSubjects.clear();
       this.saveFinishedSubjects();
       this.saveSubjects();
-      this.showToast('New day! Notes have been archived.', 'info');
+      this.showToast(this.t('newDay'), 'info');
     }
     
     localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_DAY, today);
@@ -289,8 +735,8 @@ class AppState {
     const upcoming = this.getUpcomingEvents();
     upcoming.forEach(event => {
       if (event.daysRemaining > 0) {
-        const title = '📅 Event Reminder';
-        const body = `${event.title} - ${event.daysRemaining} day${event.daysRemaining !== 1 ? 's' : ''} remaining!`;
+        const title = `📅 ${this.t('eventReminder')}`;
+        const body = `${event.title} - ${event.daysRemaining} ${event.daysRemaining !== 1 ? this.t('daysLeft') : this.t('dayLeft')}!`;
         new Notification(title, {
           body,
           icon: './icon-192.png',
@@ -359,10 +805,13 @@ class UIController {
   init() {
     this.renderDate();
     this.initTheme();
+    this.updatePageLanguage();
     this.renderEventReminders();
     this.checkAndNotifyUpcomingEvents();
     
-    if (!this.state.subjectsSelected || this.state.subjects.length === 0) {
+    if (!this.state.languageSelected) {
+      this.showLanguagePicker();
+    } else if (!this.state.subjectsSelected || this.state.subjects.length === 0) {
       this.showSubjectPicker();
     } else {
       this.renderSubjects();
@@ -377,6 +826,73 @@ class UIController {
     }
   }
   
+  updatePageLanguage() {
+    document.documentElement.lang = this.state.currentLanguage;
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (key) {
+        el.textContent = this.state.t(key);
+      }
+    });
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+      const key = el.getAttribute('data-i18n-placeholder');
+      if (key) {
+        el.placeholder = this.state.t(key);
+      }
+    });
+  }
+  
+  showLanguagePicker() {
+    const overlay = document.createElement('div');
+    overlay.className = 'language-picker-overlay';
+    overlay.innerHTML = `
+      <div class="language-picker-modal">
+        <div class="language-header">
+          <h2>${this.state.t('selectLanguage')}</h2>
+          <p>${this.state.t('chooseLanguage')}</p>
+        </div>
+        <div class="language-grid">
+          ${Object.entries(CONFIG.LANGUAGES).map(([code, lang]) => `
+            <div class="language-option" data-lang="${code}">
+              <span class="language-flag">${lang.flag}</span>
+              <span class="language-name">${lang.name}</span>
+              <span class="language-native">${lang.native}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div class="language-actions">
+          <button id="confirm-language" class="btn-primary" disabled>
+            ${this.state.t('confirm')}
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.body.appendChild(overlay);
+    
+    let selectedLang = null;
+    const options = overlay.querySelectorAll('.language-option');
+    const confirmBtn = overlay.querySelector('#confirm-language');
+    
+    options.forEach(option => {
+      option.addEventListener('click', () => {
+        options.forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedLang = option.dataset.lang;
+        confirmBtn.disabled = false;
+      });
+    });
+    
+    confirmBtn.addEventListener('click', () => {
+      if (selectedLang) {
+        this.state.setLanguage(selectedLang);
+        overlay.remove();
+        this.updatePageLanguage();
+        this.showSubjectPicker();
+      }
+    });
+  }
+  
   checkAndNotifyUpcomingEvents() {
     if (!this.state.notificationsEnabled || !('Notification' in window)) return;
     
@@ -387,8 +903,8 @@ class UIController {
       const notifiedKey = `notified-${event.id}`;
       if (localStorage.getItem(notifiedKey)) return;
       
-      new Notification('📅 Event Reminder', {
-        body: `${event.title} - 2 days remaining!`,
+      new Notification(`📅 ${this.state.t('eventReminder')}`, {
+        body: `${event.title} - 2 ${this.state.t('daysLeft')}`,
         icon: './icon-192.png',
         badge: './icon-192.png',
         tag: event.id
@@ -411,9 +927,9 @@ class UIController {
     remindersBar.classList.remove('hidden');
     content.innerHTML = upcoming.map(event => {
       const isUrgent = event.daysRemaining <= 2;
-      const daysText = event.daysRemaining === 0 ? 'Today!' : 
-                       event.daysRemaining === 1 ? '1 day left' : 
-                       `${event.daysRemaining} days left`;
+      const daysText = event.daysRemaining === 0 ? this.state.t('today') + '!' : 
+                       event.daysRemaining === 1 ? `1 ${this.state.t('dayLeft')}` : 
+                       `${event.daysRemaining} ${this.state.t('daysLeft')}`;
       
       return `
         <div class="reminder-item ${isUrgent ? 'urgent' : ''}">
@@ -431,11 +947,11 @@ class UIController {
     picker.innerHTML = `
       <div class="subject-picker-modal">
         <div class="picker-header">
-          <h2>Select Your 7 Subjects</h2>
+          <h2>${this.state.t('selectSubjects')}</h2>
         </div>
         <div class="picker-instructions">
-          <p>Choose exactly 7 subjects from the list below:</p>
-          <span class="selection-count">0/7 selected</span>
+          <p>${this.state.t('chooseSubjects')}</p>
+          <span class="selection-count">0/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}</span>
         </div>
         <div class="subjects-picker-grid">
           ${AVAILABLE_SUBJECTS.map((subject) => `
@@ -448,126 +964,13 @@ class UIController {
         </div>
         <div class="picker-actions">
           <button id="confirm-subjects" class="btn-primary" disabled>
-            Confirm Selection
+            ${this.state.t('confirm')}
           </button>
         </div>
       </div>
     `;
     
     document.body.appendChild(picker);
-    
-    const style = document.createElement('style');
-    style.textContent = `
-      .subject-picker-overlay { 
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(4px);
-        z-index: 9999;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 1rem;
-      }
-      .subject-picker-modal { 
-        background: var(--color-surface, #ffffff);
-        border-radius: 16px;
-        width: min(95vw, 600px);
-        max-height: 90vh;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        overflow: hidden;
-      }
-      .picker-header { 
-        padding: 1.5rem;
-        border-bottom: 1px solid var(--color-border, #e0e0e0);
-        background: var(--color-surface-elevated, #f8f9fa);
-      }
-      .picker-header h2 { margin: 0; font-size: 1.5rem; color: var(--color-text, #1a1a1a); }
-      .picker-instructions { 
-        padding: 1rem 1.5rem;
-        background: var(--color-bg, #fdfdfd);
-        border-bottom: 1px solid var(--color-border, #e0e0e0);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-      }
-      .picker-instructions p { margin: 0; color: var(--color-text-secondary, #666666); }
-      .selection-count { font-weight: 700; color: var(--color-primary, #0077ff); font-size: 1.125rem; }
-      .subjects-picker-grid { 
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 0.75rem;
-        padding: 1.5rem;
-        max-height: 50vh;
-        overflow-y: auto;
-        background: var(--color-surface, #ffffff);
-      }
-      .subject-option { 
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        background: var(--color-bg, #fdfdfd);
-        border: 2px solid var(--color-border, #e0e0e0);
-        border-radius: 12px;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .subject-option:hover { border-color: var(--color-primary, #0077ff); transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-      .subject-option.selected { background: var(--color-primary, #0077ff); border-color: var(--color-primary, #0077ff); color: white; }
-      .subject-option input { display: none; }
-      .checkmark { 
-        width: 20px;
-        height: 20px;
-        border: 2px solid var(--color-border, #e0e0e0);
-        border-radius: 4px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: all 0.15s ease;
-        flex-shrink: 0;
-      }
-      .subject-option.selected .checkmark { background: white; border-color: white; }
-      .subject-option.selected .checkmark::after { content: '✓'; color: var(--color-primary, #0077ff); font-weight: bold; font-size: 14px; }
-      .subject-name { font-weight: 500; font-size: 0.9375rem; }
-      .picker-actions { 
-        padding: 1.5rem;
-        border-top: 1px solid var(--color-border, #e0e0e0);
-        display: flex;
-        justify-content: center;
-        background: var(--color-surface-elevated, #f8f9fa);
-      }
-      #confirm-subjects { padding: 0.875rem 2rem; font-size: 1rem; min-width: 200px; }
-      #confirm-subjects:disabled { opacity: 0.5; cursor: not-allowed; }
-      .btn-primary {
-        background: var(--color-primary, #0077ff);
-        color: white;
-        border: none;
-        border-radius: 12px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s ease;
-      }
-      .btn-primary:hover:not(:disabled) { background: var(--color-primary-hover, #005fcc); transform: translateY(-1px); }
-      
-      @media (prefers-color-scheme: dark) {
-        .subject-picker-modal { background: #1a1a1a; }
-        .picker-header { background: #242424; border-color: #333333; }
-        .picker-header h2 { color: #f5f5f5; }
-        .picker-instructions { background: #0f0f0f; border-color: #333333; }
-        .picker-instructions p { color: #a0a0a0; }
-        .subjects-picker-grid { background: #1a1a1a; }
-        .subject-option { background: #242424; border-color: #333333; color: #f5f5f5; }
-        .subject-option:hover { border-color: #4dabf7; }
-        .picker-actions { background: #242424; border-color: #333333; }
-      }
-    `;
-    document.head.appendChild(style);
     
     const checkboxes = picker.querySelectorAll('input[type="checkbox"]');
     const confirmBtn = picker.querySelector('#confirm-subjects');
@@ -580,7 +983,7 @@ class UIController {
         if (e.target.checked) {
           if (selectedCount >= CONFIG.MAX_SUBJECTS) {
             e.target.checked = false;
-            this.state.showToast(`You can only select ${CONFIG.MAX_SUBJECTS} subjects`, 'error');
+            this.state.showToast(this.state.t('maxSubjects'), 'error');
             return;
           }
           selectedCount++;
@@ -589,7 +992,7 @@ class UIController {
           selectedCount--;
           label.classList.remove('selected');
         }
-        countDisplay.textContent = `${selectedCount}/${CONFIG.MAX_SUBJECTS} selected`;
+        countDisplay.textContent = `${selectedCount}/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}`;
         confirmBtn.disabled = selectedCount !== CONFIG.MAX_SUBJECTS;
       });
     });
@@ -598,10 +1001,9 @@ class UIController {
       const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
       this.state.setSelectedSubjects(selected);
       picker.remove();
-      style.remove();
       this.renderSubjects();
       this.renderTodayEvents();
-      this.state.showToast('Subjects selected successfully!', 'success');
+      this.state.showToast(this.state.t('saved'), 'success');
     });
   }
   
@@ -627,10 +1029,23 @@ class UIController {
   
   renderDate() {
     const now = new Date();
-    const weekday = now.toLocaleDateString(undefined, { weekday: 'long' });
-    const day = now.toLocaleDateString(undefined, { day: 'numeric' });
-    const month = now.toLocaleDateString(undefined, { month: 'long' });
-    this.elements.dateDisplay.innerHTML = `<span class="weekday">${weekday}</span><span class="date">${day} ${month}</span>`;
+    const options = { 
+      weekday: 'long', 
+      day: 'numeric', 
+      month: 'long',
+      locale: this.state.currentLanguage 
+    };
+    try {
+      const weekday = now.toLocaleDateString(this.state.currentLanguage, { weekday: 'long' });
+      const day = now.toLocaleDateString(this.state.currentLanguage, { day: 'numeric' });
+      const month = now.toLocaleDateString(this.state.currentLanguage, { month: 'long' });
+      this.elements.dateDisplay.innerHTML = `<span class="weekday">${weekday}</span><span class="date">${day} ${month}</span>`;
+    } catch (e) {
+      const weekday = now.toLocaleDateString(undefined, { weekday: 'long' });
+      const day = now.toLocaleDateString(undefined, { day: 'numeric' });
+      const month = now.toLocaleDateString(undefined, { month: 'long' });
+      this.elements.dateDisplay.innerHTML = `<span class="weekday">${weekday}</span><span class="date">${day} ${month}</span>`;
+    }
   }
   
   renderSubjects() {
@@ -649,15 +1064,15 @@ class UIController {
     card.className = `subject-card ${subject.saved ? 'saved' : ''} ${isFinished ? 'finished' : ''}`;
     card.dataset.id = subject.id;
     card.innerHTML = `
-      <input type="text" class="subject-input" placeholder="Subject name" value="${subject.name}" aria-label="Subject name" readonly ${isFinished ? 'disabled' : ''}>
-      <textarea class="notes-textarea" placeholder="${isFinished ? 'Finished for today! Come back tomorrow for new homework.' : 'Write your homework notes here...'}" aria-label="Notes for ${subject.name}" ${isFinished ? 'disabled' : ''}>${isFinished ? '' : subject.notes}</textarea>
+      <input type="text" class="subject-input" placeholder="${this.state.t('addSubject')}" value="${subject.name}" aria-label="${this.state.t('addSubject')}" readonly ${isFinished ? 'disabled' : ''}>
+      <textarea class="notes-textarea" placeholder="${isFinished ? this.state.t('finished') : this.state.t('addNotesFirst')}" aria-label="${this.state.t('addNotesFirst')} ${subject.name}" ${isFinished ? 'disabled' : ''}>${isFinished ? '' : subject.notes}</textarea>
       <div class="card-actions">
         ${isFinished ? `
-          <span class="finished-badge"><i class="fa-solid fa-check-circle"></i> Done</span>
+          <span class="finished-badge"><i class="fa-solid fa-check-circle"></i> ${this.state.t('done')}</span>
         ` : `
-          <button class="btn-icon delete" aria-label="Delete subject" title="Delete"><i class="fa-solid fa-trash"></i></button>
-          <button class="btn-icon save" aria-label="Save notes" title="Save"><i class="fa-solid fa-check"></i></button>
-          <button class="btn-icon finish" aria-label="Mark as finished" title="Finished"><i class="fa-solid fa-flag-checkered"></i></button>
+          <button class="btn-icon delete" aria-label="${this.state.t('delete')}" title="${this.state.t('delete')}"><i class="fa-solid fa-trash"></i></button>
+          <button class="btn-icon save" aria-label="${this.state.t('save')}" title="${this.state.t('save')}"><i class="fa-solid fa-check"></i></button>
+          <button class="btn-icon finish" aria-label="${this.state.t('finish')}" title="${this.state.t('finish')}"><i class="fa-solid fa-flag-checkered"></i></button>
         `}
       </div>
     `;
@@ -686,17 +1101,17 @@ class UIController {
     });
     
     deleteBtn.addEventListener('click', () => {
-      if (confirm('Delete this subject? You can reselect subjects in settings.')) {
+      if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
         this.deleteSubject(index);
       }
     });
     
     finishBtn.addEventListener('click', () => {
       if (!textarea.value.trim()) {
-        this.state.showToast('Add some notes before marking as finished!', 'error');
+        this.state.showToast(this.state.t('addNotesFirst'), 'error');
         return;
       }
-      if (confirm(`Mark ${subject.name} as finished? This will save your notes and clear the field for tomorrow.`)) {
+      if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
         this.finishSubject(subject.id, index);
       }
     });
@@ -706,7 +1121,7 @@ class UIController {
   
   finishSubject(subjectId, index) {
     this.state.markSubjectFinished(subjectId);
-    this.state.showToast('Subject marked as finished! Great job!', 'success');
+    this.state.showToast(this.state.t('greatJob'), 'success');
     this.renderSubjects();
     this.updateSubjectCounter();
   }
@@ -717,31 +1132,31 @@ class UIController {
     this.state.subjects[index].lastModified = new Date().toISOString();
     if (manual) {
       this.state.subjects[index].saved = true;
-      this.state.showToast(`Saved: ${name || 'Untitled'}`, 'success');
+      this.state.showToast(`${this.state.t('saved')}: ${name || 'Untitled'}`, 'success');
     }
     this.state.saveSubjects();
   }
   
   deleteSubject(index) {
     if (this.state.subjects.length <= 1) {
-      this.state.showToast('Cannot delete last subject', 'error');
+      this.state.showToast(this.state.t('cannotDelete'), 'error');
       return;
     }
     this.state.subjects.splice(index, 1);
     this.state.saveSubjects();
     this.renderSubjects();
     this.updateSubjectCounter();
-    this.state.showToast('Subject deleted', 'info');
+    this.state.showToast(this.state.t('subjectDeleted'), 'info');
   }
   
   addSubject() {
     if (this.state.subjects.length >= CONFIG.MAX_SUBJECTS) {
-      this.state.showToast(`Maximum ${CONFIG.MAX_SUBJECTS} subjects allowed`, 'error');
+      this.state.showToast(this.state.t('maxSubjects'), 'error');
       return;
     }
     const available = AVAILABLE_SUBJECTS.filter(sub => !this.state.subjects.some(s => s.name === sub));
     if (available.length === 0) {
-      this.state.showToast('No more subjects available to add', 'error');
+      this.state.showToast(this.state.t('maxSubjects'), 'error');
       return;
     }
     
@@ -749,7 +1164,7 @@ class UIController {
     picker.className = 'modal';
     picker.innerHTML = `
       <div class="modal-content">
-        <div class="modal-header"><h2>Add Subject</h2><button class="close-btn" onclick="this.closest('dialog').close()"><i class="fa-solid fa-xmark"></i></button></div>
+        <div class="modal-header"><h2>${this.state.t('addSubject')}</h2><button class="close-btn" onclick="this.closest('dialog').close()"><i class="fa-solid fa-xmark"></i></button></div>
         <div style="padding: var(--space-md); max-height: 40vh; overflow-y: auto;">
           ${available.map(sub => `<button class="btn-secondary" style="width: 100%; margin-bottom: var(--space-sm); justify-content: center;" onclick="window.selectSubjectToAdd('${sub}')">${sub}</button>`).join('')}
         </div>
@@ -774,21 +1189,32 @@ class UIController {
       delete window.selectSubjectToAdd;
       const cards = this.elements.subjectsContainer.querySelectorAll('.subject-card');
       cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      this.state.showToast(`Added: ${subjectName}`, 'success');
+      this.state.showToast(`${this.state.t('addSubject')}: ${subjectName}`, 'success');
     };
   }
   
   updateSubjectCounter() {
     const finishedCount = this.state.finishedSubjects.size;
     const total = this.state.subjects.length;
-    this.elements.subjectCounter.textContent = `${finishedCount}/${total} finished • ${total}/${CONFIG.MAX_SUBJECTS} subjects`;
+    this.elements.subjectCounter.textContent = `${finishedCount}/${total} ${this.state.t('finished')} • ${total}/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}`;
   }
   
   renderCalendar() {
     const grid = this.elements.calendarGrid;
     const title = this.elements.calendarTitle;
     grid.innerHTML = '';
-    title.textContent = new Date(this.state.currentYear, this.state.currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+    
+    const monthNames = [
+      this.state.t('calendar'), 
+      this.state.t('calendar'), 
+      this.state.t('calendar')
+    ];
+    
+    try {
+      title.textContent = new Date(this.state.currentYear, this.state.currentMonth).toLocaleString(this.state.currentLanguage, { month: 'long', year: 'numeric' });
+    } catch (e) {
+      title.textContent = new Date(this.state.currentYear, this.state.currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
+    }
     
     const firstDay = new Date(this.state.currentYear, this.state.currentMonth, 1).getDay();
     const daysInMonth = new Date(this.state.currentYear, this.state.currentMonth + 1, 0).getDate();
@@ -861,14 +1287,14 @@ class UIController {
     this.renderCalendar();
     this.renderTodayEvents();
     this.renderEventReminders();
-    this.state.showToast('Event saved', 'success');
+    this.state.showToast(this.state.t('saved'), 'success');
     
     const [year, month, day] = dateKey.split('-').map(Number);
     const eventDate = new Date(year, month - 1, day);
     const diffDays = Math.ceil((eventDate - new Date()) / (1000 * 60 * 60 * 24));
     if (diffDays >= 0 && diffDays <= CONFIG.REMINDER_DAYS && this.state.notificationsEnabled) {
-      new Notification('📅 New Event Added', {
-        body: `${title} - ${diffDays === 0 ? 'Today!' : diffDays + ' days remaining'}`,
+      new Notification(`📅 ${this.state.t('newEventAdded')}`, {
+        body: `${title} - ${diffDays === 0 ? this.state.t('today') + '!' : diffDays + ' ' + this.state.t('daysLeft')}`,
         icon: './icon-192.png'
       });
     }
@@ -881,7 +1307,7 @@ class UIController {
     const display = this.elements.eventDisplay;
     
     if (events.length === 0) {
-      display.innerHTML = '<p class="empty-state">No events today</p>';
+      display.innerHTML = `<p class="empty-state">${this.state.t('noEventsToday')}</p>`;
       return;
     }
     display.innerHTML = `<ul>${events.map(event => `<li><i class="fa-solid fa-calendar-check"></i>${event.title}</li>`).join('')}</ul>`;
@@ -891,13 +1317,13 @@ class UIController {
     const container = this.elements.savedNotes;
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [];
     if (history.length === 0) {
-      container.innerHTML = '<p class="empty-state">No saved notes yet</p>';
+      container.innerHTML = `<p class="empty-state">${this.state.t('noSavedNotes')}</p>`;
       return;
     }
     const sorted = history.sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
     container.innerHTML = sorted.map(entry => `
       <div class="history-item">
-        <div class="date">${new Date(entry.date).toLocaleDateString()}</div>
+        <div class="date">${new Date(entry.date).toLocaleDateString(this.state.currentLanguage)}</div>
         <div class="subject">${entry.subject || 'Untitled'}</div>
         <div class="content">${entry.content}</div>
         ${entry.status ? `<span class="status-badge">${entry.status}</span>` : ''}
@@ -919,14 +1345,14 @@ class UIController {
     a.download = `homework-book-backup-${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    this.state.showToast('Data exported successfully', 'success');
+    this.state.showToast(this.state.t('dataExported'), 'success');
   }
   
   clearHistory() {
-    if (!confirm('Clear all history? This cannot be undone.')) return;
+    if (!confirm(this.state.t('clearHistory') + '?')) return;
     localStorage.removeItem(CONFIG.STORAGE_KEYS.NOTES);
     this.renderHistory();
-    this.state.showToast('History cleared', 'info');
+    this.state.showToast(this.state.t('historyCleared'), 'info');
   }
   
   initTheme() {
@@ -1033,6 +1459,10 @@ class UIController {
     
     document.getElementById('add-subject').addEventListener('click', () => this.addSubject());
     document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
+    
+    document.getElementById('language-toggle').addEventListener('click', () => {
+      this.showLanguagePicker();
+    });
     
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
