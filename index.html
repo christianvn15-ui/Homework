@@ -9,25 +9,25 @@
   
   <!-- iOS PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-" content="black-translucent">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Homework Book">
   
   <title>Homework Book</title>
   
   <!-- Preload Critical Resources -->
-  <link rel="preload" href="styles.css" as="">
-  <link rel="preload" href="app.js" as="script">
+  <link rel="preload" href="./style.css" as="style">
+  <link rel="preload" href="./app.js" as="script">
   
-  <link rel="sheet" href="styles.css">
-  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="./style.css">
+  <link rel="manifest" href="./manifest.json">
   <link rel="apple-touch-icon" href="./icon-192.png">
   
   <!-- Font Awesome with display=swap -->
-  <link rel="sheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" media="print" onload="this.media='all'">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" media="print" onload="this.media='all'">
   
   <!-- Critical CSS Inline -->
   <style>
-    /* Critical rendering path s */
+    /* Critical rendering path styles */
     :root {
       color-scheme: light dark;
     }
@@ -190,7 +190,7 @@
   </div>
 
   <!-- Deferred Scripts -->
-  <script src="app.js" defer></script>
+  <script src="./app.js" defer></script>
   
   <script>
     // Service Worker Registration with update handling
