@@ -67,7 +67,7 @@ const TRANSLATIONS = {
     saved: 'Saved',
     newDay: 'New day! Notes have been archived',
     finishConfirm: 'Mark {subject} as finished? This will save your notes.',
-    addNotesFirst: 'Add some notes before marking as finished!',
+    addNotesFirst: 'Write down your homework and mark as finished with the flag when you are done!',
     greatJob: 'Great job! Subject marked as finished!',
     notificationsEnabled: 'Notifications enabled!',
     notificationDenied: 'Notification permission denied',
