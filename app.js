@@ -1,11 +1,3 @@
-// app.js - Multilingual Homework Book PWA with Modern ES6+ Architecture
-
-/**
- * Homework Book PWA - Main Application
- * Features: Modern ES6+, Multilingual Support, Event Reminders, Notifications, Calendar
- */
-
-// Configuration
 const CONFIG = {
   MAX_SUBJECTS: 7,
   REMINDER_DAYS: 7,
@@ -34,15 +26,9 @@ const CONFIG = {
   }
 };
 
-// Complete Translations
 const TRANSLATIONS = {
   en: {
     homeworkNotes: 'Homework Notes',
-    calendar: 'Calendar',
-    addEvent: 'Add Event',
-    eventTitle: 'Event title',
-    cancel: 'Cancel',
-    saveEvent: 'Save Event',
     notesHistory: 'Notes History',
     exportData: 'Export Data',
     clearHistory: 'Clear History',
@@ -73,7 +59,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Notification permission denied',
     dataExported: 'Data exported successfully',
     historyCleared: 'History cleared',
-    sun: 'Sun', mon: 'Mon', tue: 'Tue', wed: 'Wed', thu: 'Thu', fri: 'Fri', sat: 'Sat',
     today: 'Today',
     daysLeft: 'days left',
     dayLeft: 'day left',
@@ -84,11 +69,6 @@ const TRANSLATIONS = {
   },
   af: {
     homeworkNotes: 'Huiswerk Notas',
-    calendar: 'Kalender',
-    addEvent: 'Voeg Gebeurtenis By',
-    eventTitle: 'Gebeurtenis titel',
-    cancel: 'Kanselleer',
-    saveEvent: 'Stoor Gebeurtenis',
     notesHistory: 'Notas Geskiedenis',
     exportData: 'Voer Data Uit',
     clearHistory: 'Maak Geskiedenis Skoon',
@@ -119,7 +99,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Kennisgewing toestemming geweier',
     dataExported: 'Data suksesvol uitgevoer',
     historyCleared: 'Geskiedenis skoongemaak',
-    sun: 'Son', mon: 'Maa', tue: 'Din', wed: 'Woe', thu: 'Don', fri: 'Vry', sat: 'Sat',
     today: 'Vandag',
     daysLeft: 'dae oor',
     dayLeft: 'dag oor',
@@ -130,11 +109,6 @@ const TRANSLATIONS = {
   },
   es: {
     homeworkNotes: 'Notas de Tarea',
-    calendar: 'Calendario',
-    addEvent: 'Añadir Evento',
-    eventTitle: 'Título del evento',
-    cancel: 'Cancelar',
-    saveEvent: 'Guardar Evento',
     notesHistory: 'Historial de Notas',
     exportData: 'Exportar Datos',
     clearHistory: 'Borrar Historial',
@@ -165,7 +139,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Permiso de notificación denegado',
     dataExported: 'Datos exportados exitosamente',
     historyCleared: 'Historial borrado',
-    sun: 'Dom', mon: 'Lun', tue: 'Mar', wed: 'Mié', thu: 'Jue', fri: 'Vie', sat: 'Sáb',
     today: 'Hoy',
     daysLeft: 'días restantes',
     dayLeft: 'día restante',
@@ -176,11 +149,6 @@ const TRANSLATIONS = {
   },
   nl: {
     homeworkNotes: 'Huiswerk Notities',
-    calendar: 'Kalender',
-    addEvent: 'Evenement Toevoegen',
-    eventTitle: 'Evenement titel',
-    cancel: 'Annuleren',
-    saveEvent: 'Evenement Opslaan',
     notesHistory: 'Notities Geschiedenis',
     exportData: 'Data Exporteren',
     clearHistory: 'Geschiedenis Wissen',
@@ -211,7 +179,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Melding toestemming geweigerd',
     dataExported: 'Data succesvol geëxporteerd',
     historyCleared: 'Geschiedenis gewist',
-    sun: 'Zo', mon: 'Ma', tue: 'Di', wed: 'Wo', thu: 'Do', fri: 'Vr', sat: 'Za',
     today: 'Vandaag',
     daysLeft: 'dagen resterend',
     dayLeft: 'dag resterend',
@@ -222,11 +189,6 @@ const TRANSLATIONS = {
   },
   st: {
     homeworkNotes: 'Lintlha tsa Mosebetsi oa Lehae',
-    calendar: 'Khalendara',
-    addEvent: 'Kenya Mohlolo',
-    eventTitle: 'Sehlooho sa mohlolong',
-    cancel: 'Hlakola',
-    saveEvent: 'Boloka Mohlolo',
     notesHistory: 'Nalane ya Lintlha',
     exportData: 'Romella Data',
     clearHistory: 'Hlakola Nalane',
@@ -257,7 +219,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Tumello ea tsebiso e hanoetse',
     dataExported: 'Data e rometswe ka katleho',
     historyCleared: 'Nalane e hlakotswe',
-    sun: 'Sont', mon: 'Mant', tue: 'Lab', wed: 'Labob', thu: 'Labone', fri: 'Labohl', sat: 'Moq',
     today: 'Kajeno',
     daysLeft: 'matsatsi a setseng',
     dayLeft: 'letsatsi le setseng',
@@ -268,11 +229,6 @@ const TRANSLATIONS = {
   },
   fr: {
     homeworkNotes: 'Notes de Devoirs',
-    calendar: 'Calendrier',
-    addEvent: 'Ajouter un Événement',
-    eventTitle: "Titre de l'événement",
-    cancel: 'Annuler',
-    saveEvent: "Enregistrer l'Événement",
     notesHistory: 'Historique des Notes',
     exportData: 'Exporter les Données',
     clearHistory: "Effacer l'Historique",
@@ -303,7 +259,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Permission de notification refusée',
     dataExported: 'Données exportées avec succès',
     historyCleared: 'Historique effacé',
-    sun: 'Dim', mon: 'Lun', tue: 'Mar', wed: 'Mer', thu: 'Jeu', fri: 'Ven', sat: 'Sam',
     today: "Aujourd'hui",
     daysLeft: 'jours restants',
     dayLeft: 'jour restant',
@@ -314,11 +269,6 @@ const TRANSLATIONS = {
   },
   it: {
     homeworkNotes: 'Note dei Compiti',
-    calendar: 'Calendario',
-    addEvent: 'Aggiungi Evento',
-    eventTitle: 'Titolo evento',
-    cancel: 'Annulla',
-    saveEvent: 'Salva Evento',
     notesHistory: 'Cronologia Note',
     exportData: 'Esporta Dati',
     clearHistory: 'Cancella Cronologia',
@@ -349,7 +299,6 @@ const TRANSLATIONS = {
     notificationDenied: 'Permesso notifica negato',
     dataExported: 'Dati esportati con successo',
     historyCleared: 'Cronologia cancellata',
-    sun: 'Dom', mon: 'Lun', tue: 'Mar', wed: 'Mer', thu: 'Gio', fri: 'Ven', sat: 'Sab',
     today: 'Oggi',
     daysLeft: 'giorni rimasti',
     dayLeft: 'giorno rimasto',
@@ -360,11 +309,6 @@ const TRANSLATIONS = {
   },
   ja: {
     homeworkNotes: '宿題ノート',
-    calendar: 'カレンダー',
-    addEvent: 'イベントを追加',
-    eventTitle: 'イベントタイトル',
-    cancel: 'キャンセル',
-    saveEvent: 'イベントを保存',
     notesHistory: 'ノート履歴',
     exportData: 'データをエクスポート',
     clearHistory: '履歴をクリア',
@@ -395,7 +339,6 @@ const TRANSLATIONS = {
     notificationDenied: '通知の許可が拒否されました',
     dataExported: 'データのエクスポートに成功しました',
     historyCleared: '履歴をクリアしました',
-    sun: '日', mon: '月', tue: '火', wed: '水', thu: '木', fri: '金', sat: '土',
     today: '今日',
     daysLeft: '日残り',
     dayLeft: '日残り',
@@ -406,11 +349,6 @@ const TRANSLATIONS = {
   },
   zh: {
     homeworkNotes: '作业笔记',
-    calendar: '日历',
-    addEvent: '添加事件',
-    eventTitle: '事件标题',
-    cancel: '取消',
-    saveEvent: '保存事件',
     notesHistory: '笔记历史',
     exportData: '导出数据',
     clearHistory: '清除历史',
@@ -441,7 +379,6 @@ const TRANSLATIONS = {
     notificationDenied: '通知权限被拒绝',
     dataExported: '数据导出成功',
     historyCleared: '历史已清除',
-    sun: '日', mon: '一', tue: '二', wed: '三', thu: '四', fri: '五', sat: '六',
     today: '今天',
     daysLeft: '天后',
     dayLeft: '天后',
@@ -452,22 +389,17 @@ const TRANSLATIONS = {
   }
 };
 
-// Available subjects list (15 options)
 const AVAILABLE_SUBJECTS = [
   'Maths', 'Math Lit', 'Science', 'Biology', 'English', 'Afrikaans',
   'CAT', 'IT', 'EGD', 'Accounting', 'Business', 'Life Orientation',
   'Hospitality', 'Tourism', 'History'
 ];
 
-// State Management
 class AppState {
   constructor() {
     this.subjects = [];
     this.events = new Map();
     this.currentDate = new Date();
-    this.currentMonth = this.currentDate.getMonth();
-    this.currentYear = this.currentDate.getFullYear();
-    this.selectedDate = null;
     this.deferredPrompt = null;
     this.subjectsSelected = false;
     this.notificationsEnabled = false;
@@ -735,7 +667,7 @@ class AppState {
     const upcoming = this.getUpcomingEvents();
     upcoming.forEach(event => {
       if (event.daysRemaining > 0) {
-        const title = `📅 ${this.t('eventReminder')}`;
+        const title = `🗓️ ${this.t('eventReminder')}`;
         const body = `${event.title} - ${event.daysRemaining} ${event.daysRemaining !== 1 ? this.t('daysLeft') : this.t('dayLeft')}!`;
         new Notification(title, {
           body,
@@ -775,7 +707,6 @@ class AppState {
   }
 }
 
-// UI Controller
 class UIController {
   constructor(state) {
     this.state = state;
@@ -788,11 +719,6 @@ class UIController {
       dateDisplay: document.getElementById('date-display'),
       subjectsContainer: document.getElementById('subjects-container'),
       subjectCounter: document.querySelector('.subject-counter'),
-      calendarDialog: document.getElementById('calendar-dialog'),
-      calendarGrid: document.getElementById('calendar-grid'),
-      calendarTitle: document.getElementById('calendar-title'),
-      eventForm: document.getElementById('event-form'),
-      eventTitle: document.getElementById('event-title'),
       settingsDialog: document.getElementById('settings-dialog'),
       savedNotes: document.getElementById('saved-notes'),
       eventDisplay: document.getElementById('event-display'),
@@ -1013,8 +939,6 @@ class UIController {
   }
   
   preloadResources() {
-    const nextMonth = (this.state.currentMonth + 1) % 12;
-    const nextYear = this.state.currentMonth === 11 ? this.state.currentYear + 1 : this.state.currentYear;
   }
   
   setupPeriodicSync() {
@@ -1199,107 +1123,6 @@ class UIController {
     this.elements.subjectCounter.textContent = `${finishedCount}/${total} ${this.state.t('finished')} • ${total}/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}`;
   }
   
-  renderCalendar() {
-    const grid = this.elements.calendarGrid;
-    const title = this.elements.calendarTitle;
-    grid.innerHTML = '';
-    
-    const monthNames = [
-      this.state.t('calendar'), 
-      this.state.t('calendar'), 
-      this.state.t('calendar')
-    ];
-    
-    try {
-      title.textContent = new Date(this.state.currentYear, this.state.currentMonth).toLocaleString(this.state.currentLanguage, { month: 'long', year: 'numeric' });
-    } catch (e) {
-      title.textContent = new Date(this.state.currentYear, this.state.currentMonth).toLocaleString('default', { month: 'long', year: 'numeric' });
-    }
-    
-    const firstDay = new Date(this.state.currentYear, this.state.currentMonth, 1).getDay();
-    const daysInMonth = new Date(this.state.currentYear, this.state.currentMonth + 1, 0).getDate();
-    const today = new Date();
-    
-    const prevMonthDays = new Date(this.state.currentYear, this.state.currentMonth, 0).getDate();
-    for (let i = firstDay - 1; i >= 0; i--) {
-      grid.appendChild(this.createDayCell(prevMonthDays - i, true));
-    }
-    
-    for (let d = 1; d <= daysInMonth; d++) {
-      const isToday = d === today.getDate() && this.state.currentMonth === today.getMonth() && this.state.currentYear === today.getFullYear();
-      const key = `${this.state.currentYear}-${this.state.currentMonth + 1}-${d}`;
-      const dayEvents = this.state.events.get(key) || [];
-      grid.appendChild(this.createDayCell(d, false, isToday, dayEvents, key));
-    }
-    
-    const totalCells = firstDay + daysInMonth;
-    for (let d = 1; d <= 42 - totalCells; d++) {
-      grid.appendChild(this.createDayCell(d, true));
-    }
-  }
-  
-  createDayCell(day, isOtherMonth, isToday = false, events = [], dateKey = null) {
-    const cell = document.createElement('div');
-    cell.className = 'calendar-day';
-    cell.innerHTML = `<span class="day-number">${day}</span>`;
-    
-    if (isOtherMonth) cell.classList.add('other-month');
-    if (isToday) cell.classList.add('today');
-    if (events.length > 0) {
-      cell.classList.add('has-event');
-      const dots = document.createElement('div');
-      dots.className = 'day-events';
-      events.slice(0, 3).forEach(() => {
-        const dot = document.createElement('span');
-        dot.className = 'event-dot';
-        dots.appendChild(dot);
-      });
-      cell.appendChild(dots);
-    }
-    
-    if (!isOtherMonth && dateKey) {
-      cell.addEventListener('click', (e) => this.selectDate(day, dateKey, events, e.currentTarget));
-    }
-    return cell;
-  }
-  
-  selectDate(day, dateKey, events, cellElement) {
-    this.state.selectedDate = { day, dateKey, events };
-    this.elements.eventForm.classList.remove('hidden');
-    this.elements.eventTitle.focus();
-    document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
-    cellElement.classList.add('selected');
-  }
-  
-  saveEvent(title) {
-    if (!this.state.selectedDate) return;
-    const { dateKey } = this.state.selectedDate;
-    const currentEvents = this.state.events.get(dateKey) || [];
-    currentEvents.push({
-      id: `event-${Date.now()}`,
-      title,
-      createdAt: new Date().toISOString()
-    });
-    this.state.events.set(dateKey, currentEvents);
-    this.state.saveEvents();
-    this.elements.eventTitle.value = '';
-    this.elements.eventForm.classList.add('hidden');
-    this.renderCalendar();
-    this.renderTodayEvents();
-    this.renderEventReminders();
-    this.state.showToast(this.state.t('saved'), 'success');
-    
-    const [year, month, day] = dateKey.split('-').map(Number);
-    const eventDate = new Date(year, month - 1, day);
-    const diffDays = Math.ceil((eventDate - new Date()) / (1000 * 60 * 60 * 24));
-    if (diffDays >= 0 && diffDays <= CONFIG.REMINDER_DAYS && this.state.notificationsEnabled) {
-      new Notification(`📅 ${this.state.t('newEventAdded')}`, {
-        body: `${title} - ${diffDays === 0 ? this.state.t('today') + '!' : diffDays + ' ' + this.state.t('daysLeft')}`,
-        icon: './icon-192.png'
-      });
-    }
-  }
-  
   renderTodayEvents() {
     const today = new Date();
     const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
@@ -1397,41 +1220,7 @@ class UIController {
   
   attachEventListeners() {
     document.getElementById('calendar-toggle').addEventListener('click', () => {
-      this.renderCalendar();
-      this.elements.calendarDialog.showModal();
-    });
-    
-    document.getElementById('calendar-close').addEventListener('click', () => {
-      this.elements.calendarDialog.close();
-    });
-    
-    document.getElementById('prev-month').addEventListener('click', () => {
-      this.state.currentMonth--;
-      if (this.state.currentMonth < 0) {
-        this.state.currentMonth = 11;
-        this.state.currentYear--;
-      }
-      this.renderCalendar();
-    });
-    
-    document.getElementById('next-month').addEventListener('click', () => {
-      this.state.currentMonth++;
-      if (this.state.currentMonth > 11) {
-        this.state.currentMonth = 0;
-        this.state.currentYear++;
-      }
-      this.renderCalendar();
-    });
-    
-    document.getElementById('cancel-event').addEventListener('click', () => {
-      this.elements.eventForm.classList.add('hidden');
-      this.elements.eventTitle.value = '';
-    });
-    
-    document.getElementById('event-form').addEventListener('submit', (e) => {
-      e.preventDefault();
-      const title = this.elements.eventTitle.value.trim();
-      if (title) this.saveEvent(title);
+      window.location.href = 'events.html';
     });
     
     document.getElementById('settings-toggle').addEventListener('click', () => {
@@ -1480,10 +1269,8 @@ class UIController {
       this.state.deferredPrompt = null;
     });
     
-    [this.elements.calendarDialog, this.elements.settingsDialog].forEach(dialog => {
-      dialog.addEventListener('click', (e) => {
-        if (e.target === dialog) dialog.close();
-      });
+    this.elements.settingsDialog.addEventListener('click', (e) => {
+      if (e.target === this.elements.settingsDialog) this.elements.settingsDialog.close();
     });
     
     document.addEventListener('keydown', (e) => {
@@ -1496,9 +1283,6 @@ class UIController {
             this.saveSubject(index, subject.name, notes, true);
           }
         });
-      }
-      if (e.key === 'Escape') {
-        this.elements.eventForm.classList.add('hidden');
       }
     });
     
@@ -1520,7 +1304,7 @@ class UIController {
   }
 }
 
-// Initialize App
+
 document.addEventListener('DOMContentLoaded', async () => {
   const state = await new AppState().init();
   const ui = new UIController(state);
