@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <meta name="theme-color" content="#0077ff">
+  <meta name="color-scheme" content="light dark">
+  
+  <title>Homework Book | Calendar</title>
+
+  <link rel="stylesheet" href="events.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"/>
+  
+  <!-- Critical CSS for theme -->
+  <style>
+    :root { color-scheme: light dark; }
+    html, body { 
+      margin: 0; 
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background-color: #fdfdfd;
+      min-height: 100vh;
+    }
+    @media (prefers-color-scheme: dark) {
+      html, body { background-color: #0f0f0f; }
+    }
+    html[data-theme="dark"], html[data-theme="dark"] body { background-color: #0f0f0f !important; }
+    html[data-theme="light"], html[data-theme="light"] body { background-color: #fdfdfd !important; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <button id="back-btn" class="icon-btn" aria-label="Back to main page">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <h1 data-i18n="calendar">Calendar</h1>
+    </div>
+    
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn" aria-label="Toggle dark mode">
+        <i class="fa-solid fa-moon"></i>
+      </button>
+    </div>
+  </header>
+
+  <main class="calendar-container">
+    <div class="calendar-wrapper">
+      <div class="calendar-header">
+        <button id="prev-month" class="nav-btn" aria-label="Previous month">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h2 id="calendar-title"></h2>
+        <button id="next-month" class="nav-btn" aria-label="Next month">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="calendar-weekdays">
+        <div data-i18n="sun">Sun</div>
+        <div data-i18n="mon">Mon</div>
+        <div data-i18n="tue">Tue</div>
+        <div data-i18n="wed">Wed</div>
+        <div data-i18n="thu">Thu</div>
+        <div data-i18n="fri">Fri</div>
+        <div data-i18n="sat">Sat</div>
+      </div>
+
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+
+    <!-- Selected Date Events -->
+    <div id="selected-date-panel" class="selected-date-panel hidden">
+      <div class="panel-header">
+        <h3 id="selected-date-title"></h3>
+        <button id="close-panel" class="icon-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+      
+      <div id="events-list" class="events-list">
+        <p class="empty-state" data-i18n="noEvents">No events for this date</p>
+      </div>
+      
+      <form id="event-form" class="event-form">
+        <input 
+          type="text" 
+          id="event-title" 
+          data-i18n-placeholder="eventTitle"
+          placeholder="Event title" 
+          required 
+        />
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" data-i18n="saveEvent">Save Event</button>
+          <button type="button" id="cancel-event" class="btn-secondary" data-i18n="cancel">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </main>
+
+  <div id="toast-container" class="toast-container"></div>
+  
+  <script src="events.js" defer></script>
+</body>
+</html>
