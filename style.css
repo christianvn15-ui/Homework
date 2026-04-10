@@ -1361,6 +1361,40 @@
   background: #51cf66;
 }
 
+#theme-toggle {
+  height: 30px;
+  width: 50px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 18px;
+  font-weight: 500;
+  border: none;
+  border-radius: 5px;
+  transform: scaleX(1);
+  transition: transform 0.1s;
+}
+
+#theme-toggle.dark-mode {
+  background: transparent;
+  color: var(--color-text-secondary);
+  transform: scaleX(-1);
+}
+
+/* Keep existing icon-btn styles but override for theme toggle */
+.icon-btn#theme-toggle {
+  width: 50px;
+  height: 30px;
+}
+
+.icon-btn#theme-toggle:hover {
+  transform: scaleX(-1) translateY(-2px);
+}
+
+.icon-btn#theme-toggle:not(.dark-mode):hover {
+  transform: scaleX(1) translateY(-2px);
+}
+
+
 /* Listed Tasks Section Styles */
 .listed-tasks-section {
   margin-top: var(--space-3xl);
