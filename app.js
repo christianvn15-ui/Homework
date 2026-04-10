@@ -1389,44 +1389,41 @@ class UIController {
   }
   
   initTheme() {
-    const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-    
-    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-      document.documentElement.setAttribute('data-theme', 'dark');
-      this.updateThemeIcon('dark');
-    } else {
-      document.documentElement.setAttribute('data-theme', 'light');
-      this.updateThemeIcon('light');
-    }
-    
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-      if (!localStorage.getItem(CONFIG.STORAGE_KEYS.THEME)) {
-        const newTheme = e.matches ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        this.updateThemeIcon(newTheme);
-      }
-    });
+  const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    if (themeToggle) themeToggle.classList.add('dark-mode');
+  } else {
+    document.documentElement.setAttribute('data-theme', 'light');
+    if (themeToggle) themeToggle.classList.remove('dark-mode');
   }
   
-  updateThemeIcon(theme) {
-    const icon = document.querySelector('#theme-toggle i');
-    if (icon) {
-      if (theme === 'dark') {
-        icon.className = 'fa-solid fa-sun';
-      } else {
-        icon.className = 'fa-solid fa-moon';
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.THEME)) {
+      const newTheme = e.matches ? 'dark' : 'light';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      if (themeToggle) {
+        themeToggle.classList.toggle('dark-mode', newTheme === 'dark');
       }
     }
-  }
+  });
+}
   
-  toggleTheme() {
-    const current = document.documentElement.getAttribute('data-theme');
-    const next = current === 'dark' ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', next);
-    localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
-    this.updateThemeIcon(next);
+toggleTheme() {
+  const current = document.documentElement.getAttribute('data-theme');
+  const next = current === 'dark' ? 'light' : 'dark';
+  const themeToggle = document.getElementById('theme-toggle');
+  
+  document.documentElement.setAttribute('data-theme', next);
+  localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
+  
+  if (themeToggle) {
+    themeToggle.classList.toggle('dark-mode', next === 'dark');
   }
+}
   
   attachEventListeners() {
     document.getElementById('calendar-toggle').addEventListener('click', () => {
