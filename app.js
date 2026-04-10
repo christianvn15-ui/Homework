@@ -15,14 +15,14 @@ const CONFIG = {
   STORAGE_KEYS: {
     NOTES: 'notesHistory',
     EVENTS: 'events',
-    LAST_DAY: 'lastDay',
     THEME: 'theme',
     SUBJECTS: 'subjects',
     SUBJECTS_SELECTED: 'subjectsSelected',
     NOTIFICATIONS_ENABLED: 'notificationsEnabled',
     LANGUAGE: 'language',
     LANGUAGE_SELECTED: 'languageSelected',
-    FINISHED_SUBJECTS: 'finishedSubjects'
+    FINISHED_SUBJECTS: 'finishedSubjects',
+    LISTED_TASKS: 'listedTasks'
   }
 };
 
@@ -65,7 +65,11 @@ const TRANSLATIONS = {
     eventReminder: 'Event Reminder',
     newEventAdded: 'New Event Added',
     update: 'Update',
-    newVersion: 'New version available!'
+    newVersion: 'New version available!',
+    listedTasks: 'Listed Tasks',
+    addTask: 'Add Task',
+    taskPlaceholder: 'Enter a task...',
+    taskDeleted: 'Task deleted'
   },
   af: {
     homeworkNotes: 'Huiswerk Notas',
@@ -105,7 +109,11 @@ const TRANSLATIONS = {
     eventReminder: 'Gebeurtenis Herinnering',
     newEventAdded: 'Nuwe Gebeurtenis Bygevoeg',
     update: 'Opdateer',
-    newVersion: 'Nuwe weergawe beskikbaar!'
+    newVersion: 'Nuwe weergawe beskikbaar!',
+    listedTasks: 'Lys Take',
+    addTask: 'Voeg Taak By',
+    taskPlaceholder: 'Voer \'n taak in...',
+    taskDeleted: 'Taak uitgevee'
   },
   es: {
     homeworkNotes: 'Notas de Tarea',
@@ -145,7 +153,11 @@ const TRANSLATIONS = {
     eventReminder: 'Recordatorio de Evento',
     newEventAdded: 'Nuevo Evento Añadido',
     update: 'Actualizar',
-    newVersion: '¡Nueva versión disponible!'
+    newVersion: '¡Nueva versión disponible!',
+    listedTasks: 'Tareas Listadas',
+    addTask: 'Añadir Tarea',
+    taskPlaceholder: 'Introduce una tarea...',
+    taskDeleted: 'Tarea eliminada'
   },
   nl: {
     homeworkNotes: 'Huiswerk Notities',
@@ -185,7 +197,11 @@ const TRANSLATIONS = {
     eventReminder: 'Evenement Herinnering',
     newEventAdded: 'Nieuw Evenement Toegevoegd',
     update: 'Bijwerken',
-    newVersion: 'Nieuwe versie beschikbaar!'
+    newVersion: 'Nieuwe versie beschikbaar!',
+    listedTasks: 'Gelijste Taken',
+    addTask: 'Taak Toevoegen',
+    taskPlaceholder: 'Voer een taak in...',
+    taskDeleted: 'Taak verwijderd'
   },
   st: {
     homeworkNotes: 'Lintlha tsa Mosebetsi oa Lehae',
@@ -225,7 +241,11 @@ const TRANSLATIONS = {
     eventReminder: 'Tsebiso ea Mohlolo',
     newEventAdded: 'Mohlolo o Montšha o Kenyelletswe',
     update: 'Ntlafatsa',
-    newVersion: 'Mofuta o mocha o fumaneha!'
+    newVersion: 'Mofuta o mocha o fumaneha!',
+    listedTasks: 'Litebelelo tse Behilweng',
+    addTask: 'Kenya Tlhahiso',
+    taskPlaceholder: 'Kenya tlhahiso...',
+    taskDeleted: 'Tlhahiso e hlakotswe'
   },
   fr: {
     homeworkNotes: 'Notes de Devoirs',
@@ -265,7 +285,11 @@ const TRANSLATIONS = {
     eventReminder: 'Rappel Événement',
     newEventAdded: 'Nouvel Événement Ajouté',
     update: 'Mettre à jour',
-    newVersion: 'Nouvelle version disponible !'
+    newVersion: 'Nouvelle version disponible !',
+    listedTasks: 'Tâches Listées',
+    addTask: 'Ajouter une Tâche',
+    taskPlaceholder: 'Entrez une tâche...',
+    taskDeleted: 'Tâche supprimée'
   },
   it: {
     homeworkNotes: 'Note dei Compiti',
@@ -305,7 +329,11 @@ const TRANSLATIONS = {
     eventReminder: 'Promemoria Evento',
     newEventAdded: 'Nuovo Evento Aggiunto',
     update: 'Aggiorna',
-    newVersion: 'Nuova versione disponibile!'
+    newVersion: 'Nuova versione disponibile!',
+    listedTasks: 'Attività Elencate',
+    addTask: 'Aggiungi Attività',
+    taskPlaceholder: 'Inserisci un\'attività...',
+    taskDeleted: 'Attività eliminata'
   },
   ja: {
     homeworkNotes: '宿題ノート',
@@ -345,7 +373,11 @@ const TRANSLATIONS = {
     eventReminder: 'イベントリマインダー',
     newEventAdded: '新しいイベントが追加されました',
     update: '更新',
-    newVersion: '新しいバージョンが利用可能です！'
+    newVersion: '新しいバージョンが利用可能です！',
+    listedTasks: 'リストされたタスク',
+    addTask: 'タスクを追加',
+    taskPlaceholder: 'タスクを入力...',
+    taskDeleted: 'タスクを削除しました'
   },
   zh: {
     homeworkNotes: '作业笔记',
@@ -385,7 +417,11 @@ const TRANSLATIONS = {
     eventReminder: '事件提醒',
     newEventAdded: '新事件已添加',
     update: '更新',
-    newVersion: '新版本可用！'
+    newVersion: '新版本可用！',
+    listedTasks: '列出的任务',
+    addTask: '添加任务',
+    taskPlaceholder: '输入任务...',
+    taskDeleted: '任务已删除'
   }
 };
 
@@ -406,14 +442,16 @@ class AppState {
     this.finishedSubjects = new Set();
     this.currentLanguage = 'en';
     this.languageSelected = false;
+    this.listedTasks = [];
   }
   
   async init() {
     await this.loadData();
-    this.checkDailyReset();
+    // REMOVED: Daily reset functionality - homework now persists across days
     this.requestNotificationPermission();
     this.cleanupOldNotificationFlags();
     this.loadFinishedSubjects();
+    this.loadListedTasks();
     return this;
   }
   
@@ -436,22 +474,54 @@ class AppState {
     }
   }
   
+  loadListedTasks() {
+    const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.LISTED_TASKS);
+    if (saved) {
+      this.listedTasks = JSON.parse(saved);
+    }
+  }
+  
+  saveListedTasks() {
+    localStorage.setItem(CONFIG.STORAGE_KEYS.LISTED_TASKS, JSON.stringify(this.listedTasks));
+  }
+  
+  addListedTask(text) {
+    const task = {
+      id: `task-${Date.now()}`,
+      text: text,
+      completed: false,
+      createdAt: new Date().toISOString()
+    };
+    this.listedTasks.push(task);
+    this.saveListedTasks();
+    return task;
+  }
+  
+  updateListedTask(id, updates) {
+    const task = this.listedTasks.find(t => t.id === id);
+    if (task) {
+      Object.assign(task, updates);
+      this.saveListedTasks();
+    }
+  }
+  
+  deleteListedTask(id) {
+    this.listedTasks = this.listedTasks.filter(t => t.id !== id);
+    this.saveListedTasks();
+  }
+  
   loadFinishedSubjects() {
     const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS);
     if (saved) {
       const data = JSON.parse(saved);
-      const today = new Date().toDateString();
-      if (data.date === today) {
-        this.finishedSubjects = new Set(data.subjects);
-      } else {
-        this.finishedSubjects = new Set();
-      }
+      // REMOVED: Date checking - finished status now persists until manually cleared
+      // or until user finishes and archives
+      this.finishedSubjects = new Set(data.subjects || []);
     }
   }
   
   saveFinishedSubjects() {
     const data = {
-      date: new Date().toDateString(),
       subjects: Array.from(this.finishedSubjects)
     };
     localStorage.setItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS, JSON.stringify(data));
@@ -462,11 +532,23 @@ class AppState {
     this.saveFinishedSubjects();
     this.archiveSubjectNotes(subjectId);
     
+    // Keep the notes visible but mark as finished - user can still edit if needed
+    // or clear notes if they want fresh start
     const subject = this.subjects.find(s => s.id === subjectId);
     if (subject) {
-      subject.notes = '';
-      subject.saved = false;
-      subject.lastModified = null;
+      subject.finished = true;
+      subject.finishedAt = new Date().toISOString();
+      this.saveSubjects();
+    }
+  }
+  
+  unfinishSubject(subjectId) {
+    this.finishedSubjects.delete(subjectId);
+    this.saveFinishedSubjects();
+    const subject = this.subjects.find(s => s.id === subjectId);
+    if (subject) {
+      subject.finished = false;
+      delete subject.finishedAt;
       this.saveSubjects();
     }
   }
@@ -496,7 +578,8 @@ class AppState {
       name: name,
       notes: '',
       saved: false,
-      lastModified: null
+      lastModified: null,
+      finished: false
     }));
     this.saveSubjects();
   }
@@ -507,7 +590,8 @@ class AppState {
       name: name,
       notes: '',
       saved: false,
-      lastModified: null
+      lastModified: null,
+      finished: false
     }));
     this.subjectsSelected = true;
     localStorage.setItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED, 'true');
@@ -566,42 +650,7 @@ class AppState {
     }
   }
   
-  checkDailyReset() {
-    const today = new Date().toDateString();
-    const lastDay = localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_DAY);
-    
-    if (lastDay && lastDay !== today) {
-      this.archiveNotes(lastDay);
-      this.subjects.forEach(subject => {
-        if (subject.notes.trim()) {
-          subject.notes = '';
-          subject.saved = false;
-          subject.lastModified = null;
-        }
-      });
-      this.finishedSubjects.clear();
-      this.saveFinishedSubjects();
-      this.saveSubjects();
-      this.showToast(this.t('newDay'), 'info');
-    }
-    
-    localStorage.setItem(CONFIG.STORAGE_KEYS.LAST_DAY, today);
-  }
-  
-  archiveNotes(date) {
-    const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [];
-    this.subjects.forEach(subject => {
-      if (subject.notes.trim()) {
-        history.push({
-          date: date,
-          subject: subject.name,
-          content: subject.notes,
-          archivedAt: new Date().toISOString()
-        });
-      }
-    });
-    localStorage.setItem(CONFIG.STORAGE_KEYS.NOTES, JSON.stringify(history));
-  }
+  // REMOVED: checkDailyReset() - no longer needed as homework persists
   
   async updateBadge() {
     if ('setAppBadge' in navigator) {
@@ -724,7 +773,9 @@ class UIController {
       eventDisplay: document.getElementById('event-display'),
       eventReminders: document.getElementById('event-reminders'),
       remindersContent: document.querySelector('.reminders-content'),
-      installBtn: document.getElementById('install-btn')
+      installBtn: document.getElementById('install-btn'),
+      listedTasksContainer: document.getElementById('listed-tasks-container'),
+      taskCounter: document.querySelector('.task-counter')
     };
   }
   
@@ -741,6 +792,7 @@ class UIController {
       this.showSubjectPicker();
     } else {
       this.renderSubjects();
+      this.renderListedTasks();
       this.renderTodayEvents();
     }
     
@@ -845,6 +897,8 @@ class UIController {
     const remindersBar = this.elements.eventReminders;
     const content = this.elements.remindersContent;
     
+    if (!remindersBar || !content) return;
+    
     if (upcoming.length === 0) {
       remindersBar.classList.add('hidden');
       return;
@@ -928,6 +982,7 @@ class UIController {
       this.state.setSelectedSubjects(selected);
       picker.remove();
       this.renderSubjects();
+      this.renderListedTasks();
       this.renderTodayEvents();
       this.state.showToast(this.state.t('saved'), 'success');
     });
@@ -987,11 +1042,16 @@ class UIController {
     const card = document.createElement('div');
     card.className = `subject-card ${subject.saved ? 'saved' : ''} ${isFinished ? 'finished' : ''}`;
     card.dataset.id = subject.id;
+    card.dataset.index = index;
+    
+    // Notes are now persisted until user clicks finish
+    // Even when finished, notes stay visible but card is marked as finished
     card.innerHTML = `
-      <input type="text" class="subject-input" placeholder="${this.state.t('addSubject')}" value="${subject.name}" aria-label="${this.state.t('addSubject')}" readonly ${isFinished ? 'disabled' : ''}>
-      <textarea class="notes-textarea" placeholder="${isFinished ? this.state.t('finished') : this.state.t('addNotesFirst')}" aria-label="${this.state.t('addNotesFirst')} ${subject.name}" ${isFinished ? 'disabled' : ''}>${isFinished ? '' : subject.notes}</textarea>
+      <input type="text" class="subject-input" placeholder="${this.state.t('addSubject')}" value="${subject.name}" aria-label="${this.state.t('addSubject')}" readonly>
+      <textarea class="notes-textarea" placeholder="${this.state.t('addNotesFirst')}" aria-label="${this.state.t('addNotesFirst')} ${subject.name}">${subject.notes}</textarea>
       <div class="card-actions">
         ${isFinished ? `
+          <button class="btn-icon unfinish" aria-label="Unfinish" title="Mark as not finished"><i class="fa-solid fa-rotate-left"></i></button>
           <span class="finished-badge"><i class="fa-solid fa-check-circle"></i> ${this.state.t('done')}</span>
         ` : `
           <button class="btn-icon delete" aria-label="${this.state.t('delete')}" title="${this.state.t('delete')}"><i class="fa-solid fa-trash"></i></button>
@@ -1001,13 +1061,9 @@ class UIController {
       </div>
     `;
     
-    if (isFinished) return card;
-    
     const textarea = card.querySelector('.notes-textarea');
-    const saveBtn = card.querySelector('.btn-icon.save');
-    const deleteBtn = card.querySelector('.btn-icon.delete');
-    const finishBtn = card.querySelector('.btn-icon.finish');
     
+    // Always allow editing and auto-saving
     let debounceTimer;
     const autoSave = () => {
       clearTimeout(debounceTimer);
@@ -1018,27 +1074,45 @@ class UIController {
     
     textarea.addEventListener('input', autoSave);
     
-    saveBtn.addEventListener('click', () => {
-      this.saveSubject(index, subject.name, textarea.value, true);
-      card.classList.add('saved');
-      setTimeout(() => card.classList.remove('saved'), 2000);
-    });
-    
-    deleteBtn.addEventListener('click', () => {
-      if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
-        this.deleteSubject(index);
-      }
-    });
-    
-    finishBtn.addEventListener('click', () => {
-      if (!textarea.value.trim()) {
-        this.state.showToast(this.state.t('addNotesFirst'), 'error');
-        return;
-      }
-      if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
+    if (isFinished) {
+      const unfinishBtn = card.querySelector('.btn-icon.unfinish');
+      unfinishBtn.addEventListener('click', () => {
+        this.state.unfinishSubject(subject.id);
+        this.renderSubjects();
+        this.updateSubjectCounter();
+        // Focus the textarea after unfinishing
+        setTimeout(() => {
+          const newCard = this.elements.subjectsContainer.children[index];
+          if (newCard) {
+            newCard.querySelector('.notes-textarea').focus();
+          }
+        }, 100);
+      });
+    } else {
+      const saveBtn = card.querySelector('.btn-icon.save');
+      const deleteBtn = card.querySelector('.btn-icon.delete');
+      const finishBtn = card.querySelector('.btn-icon.finish');
+      
+      saveBtn.addEventListener('click', () => {
+        this.saveSubject(index, subject.name, textarea.value, true);
+        card.classList.add('saved');
+        setTimeout(() => card.classList.remove('saved'), 2000);
+      });
+      
+      deleteBtn.addEventListener('click', () => {
+        if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
+          this.deleteSubject(index);
+        }
+      });
+      
+      finishBtn.addEventListener('click', () => {
+        if (!textarea.value.trim()) {
+          this.state.showToast(this.state.t('addNotesFirst'), 'error');
+          return;
+        }
         this.finishSubject(subject.id, index);
-      }
-    });
+      });
+    }
     
     return card;
   }
@@ -1046,8 +1120,44 @@ class UIController {
   finishSubject(subjectId, index) {
     this.state.markSubjectFinished(subjectId);
     this.state.showToast(this.state.t('greatJob'), 'success');
+    
+    // Find next unfinished subject and focus it
+    const nextIndex = this.findNextUnfinishedSubject(index);
+    if (nextIndex !== -1) {
+      setTimeout(() => {
+        const nextCard = this.elements.subjectsContainer.children[nextIndex];
+        if (nextCard) {
+          nextCard.classList.add('focus-next');
+          const textarea = nextCard.querySelector('.notes-textarea');
+          textarea.focus();
+          textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          setTimeout(() => nextCard.classList.remove('focus-next'), 1000);
+        }
+      }, 300);
+    }
+    
     this.renderSubjects();
     this.updateSubjectCounter();
+  }
+  
+  findNextUnfinishedSubject(currentIndex) {
+    // Look for next unfinished subject after current
+    for (let i = currentIndex + 1; i < this.state.subjects.length; i++) {
+      if (!this.state.isSubjectFinished(this.state.subjects[i].id)) {
+        return i;
+      }
+    }
+    // If none found after, look from beginning
+    for (let i = 0; i < currentIndex; i++) {
+      if (!this.state.isSubjectFinished(this.state.subjects[i].id)) {
+        return i;
+      }
+    }
+    // If current is the only unfinished one, return it
+    if (!this.state.isSubjectFinished(this.state.subjects[currentIndex].id)) {
+      return currentIndex;
+    }
+    return -1;
   }
   
   saveSubject(index, name, notes, manual = false) {
@@ -1103,7 +1213,8 @@ class UIController {
         name: subjectName,
         notes: '',
         saved: false,
-        lastModified: null
+        lastModified: null,
+        finished: false
       };
       this.state.subjects.push(newSubject);
       this.state.saveSubjects();
@@ -1121,6 +1232,104 @@ class UIController {
     const finishedCount = this.state.finishedSubjects.size;
     const total = this.state.subjects.length;
     this.elements.subjectCounter.textContent = `${finishedCount}/${total} ${this.state.t('finished')} • ${total}/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}`;
+  }
+  
+  // Listed Tasks Methods
+  renderListedTasks() {
+    const container = this.elements.listedTasksContainer;
+    const counter = this.elements.taskCounter;
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    if (this.state.listedTasks.length === 0) {
+      container.innerHTML = `<p class="empty-state" style="color: var(--color-text-secondary); font-style: italic; padding: var(--space-md);">No tasks yet. Add one below!</p>`;
+    } else {
+      this.state.listedTasks.forEach(task => {
+        const taskCard = this.createListedTaskCard(task);
+        container.appendChild(taskCard);
+      });
+    }
+    
+    if (counter) {
+      const completed = this.state.listedTasks.filter(t => t.completed).length;
+      const total = this.state.listedTasks.length;
+      counter.textContent = `${completed}/${total} done`;
+    }
+  }
+  
+  createListedTaskCard(task) {
+    const card = document.createElement('div');
+    card.className = `listed-task-card ${task.completed ? 'completed' : ''}`;
+    card.dataset.id = task.id;
+    
+    card.innerHTML = `
+      <div class="task-checkbox ${task.completed ? 'checked' : ''}" role="button" tabindex="0" aria-label="Toggle task completion">
+        ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
+      </div>
+      <div class="task-input-wrapper">
+        <textarea class="task-input" placeholder="${this.state.t('taskPlaceholder')}" rows="1">${task.text}</textarea>
+      </div>
+      <button class="task-delete-btn" aria-label="${this.state.t('delete')}">
+        <i class="fa-solid fa-trash"></i>
+      </button>
+    `;
+    
+    const checkbox = card.querySelector('.task-checkbox');
+    const input = card.querySelector('.task-input');
+    const deleteBtn = card.querySelector('.task-delete-btn');
+    
+    // Toggle completion
+    const toggleComplete = () => {
+      const newStatus = !task.completed;
+      this.state.updateListedTask(task.id, { completed: newStatus });
+      this.renderListedTasks();
+    };
+    
+    checkbox.addEventListener('click', toggleComplete);
+    checkbox.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        toggleComplete();
+      }
+    });
+    
+    // Auto-resize textarea
+    const autoResize = () => {
+      input.style.height = 'auto';
+      input.style.height = input.scrollHeight + 'px';
+    };
+    
+    input.addEventListener('input', () => {
+      autoResize();
+      this.state.updateListedTask(task.id, { text: input.value });
+    });
+    
+    // Initial resize
+    setTimeout(autoResize, 0);
+    
+    // Delete task
+    deleteBtn.addEventListener('click', () => {
+      this.state.deleteListedTask(task.id);
+      this.renderListedTasks();
+      this.state.showToast(this.state.t('taskDeleted'), 'info');
+    });
+    
+    return card;
+  }
+  
+  addListedTask() {
+    const task = this.state.addListedTask('');
+    this.renderListedTasks();
+    // Focus the new task input
+    setTimeout(() => {
+      const cards = this.elements.listedTasksContainer.querySelectorAll('.listed-task-card');
+      const newCard = cards[cards.length - 1];
+      if (newCard) {
+        const input = newCard.querySelector('.task-input');
+        input.focus();
+      }
+    }, 100);
   }
   
   renderTodayEvents() {
@@ -1145,7 +1354,7 @@ class UIController {
     }
     const sorted = history.sort((a, b) => new Date(b.archivedAt) - new Date(a.archivedAt));
     container.innerHTML = sorted.map(entry => `
-      <div class="history-item">
+      <div class="history-item ${entry.status === 'finished' ? 'finished' : ''}">
         <div class="date">${new Date(entry.date).toLocaleDateString(this.state.currentLanguage)}</div>
         <div class="subject">${entry.subject || 'Untitled'}</div>
         <div class="content">${entry.content}</div>
@@ -1154,11 +1363,12 @@ class UIController {
     `).join('');
   }
   
-  exportData() {
+    exportData() {
     const data = {
       subjects: this.state.subjects,
       events: Object.fromEntries(this.state.events),
       history: JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [],
+      listedTasks: this.state.listedTasks,
       exportedAt: new Date().toISOString()
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1249,9 +1459,17 @@ class UIController {
     document.getElementById('add-subject').addEventListener('click', () => this.addSubject());
     document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
     
-    document.getElementById('language-toggle').addEventListener('click', () => {
-      this.showLanguagePicker();
-    });
+    const addTaskBtn = document.getElementById('add-listed-task');
+    if (addTaskBtn) {
+      addTaskBtn.addEventListener('click', () => this.addListedTask());
+    }
+    
+    const languageToggle = document.getElementById('language-toggle');
+    if (languageToggle) {
+      languageToggle.addEventListener('click', () => {
+        this.showLanguagePicker();
+      });
+    }
     
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
@@ -1290,18 +1508,12 @@ class UIController {
       if (document.visibilityState === 'visible') {
         this.renderDate();
         this.renderEventReminders();
-        this.checkDailyReset();
+        // REMOVED: checkDailyReset() - no longer needed
       }
     });
   }
   
-  checkDailyReset() {
-    const today = new Date().toDateString();
-    const lastDay = localStorage.getItem(CONFIG.STORAGE_KEYS.LAST_DAY);
-    if (lastDay !== today) {
-      location.reload();
-    }
-  }
+  // REMOVED: checkDailyReset() method - daily reset functionality removed
 }
 
 
