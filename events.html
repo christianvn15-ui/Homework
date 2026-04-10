@@ -1,245 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
   <meta name="theme-color" content="#0077ff">
   <meta name="color-scheme" content="light dark">
-  <meta name="description" content="A modern PWA for managing homework and calendar events">
   
-  <!-- iOS PWA Support -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Homework Book">
+  <title>Homework Book | Calendar</title>
+
+  <link rel="stylesheet" href="events.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"/>
   
-  <title>Homework Book</title>
-  
-  <!-- Preload Critical Resources -->
-  <link rel="preload" href="style.css" as="style">
-  <link rel="preload" href="app.js" as="script">
-  
-  <link rel="stylesheet" href="style.css">
-  <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon-192x192.png">
-  
-  <!-- Font Awesome with display=swap -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" media="print" onload="this.media='all'">
-  
-  <!-- Critical CSS Inline -->
+  <!-- Critical CSS for theme -->
   <style>
-    /* Critical rendering path styles */
-    :root {
-      color-scheme: light dark;
-    }
-    html, body {
-      margin: 0;
+    :root { color-scheme: light dark; }
+    html, body { 
+      margin: 0; 
       font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background-color: #fdfdfd;
       min-height: 100vh;
     }
     @media (prefers-color-scheme: dark) {
-      html, body {
-        background-color: #0f0f0f;
-      }
+      html, body { background-color: #0f0f0f; }
     }
-    html[data-theme="dark"], html[data-theme="dark"] body {
-      background-color: #0f0f0f !important;
-    }
-    html[data-theme="light"], html[data-theme="light"] body {
-      background-color: #fdfdfd !important;
-    }
+    html[data-theme="dark"], html[data-theme="dark"] body { background-color: #0f0f0f !important; }
+    html[data-theme="light"], html[data-theme="light"] body { background-color: #fdfdfd !important; }
     .hidden { display: none !important; }
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after { animation-duration: 0.01ms !important; }
-    }
   </style>
 </head>
+
 <body>
-  <!-- App Shell -->
-  <div id="app">
-    <header class="app-header">
-      <div class="header-left">
-        <div id="date-display" class="date-badge">
-          <span class="weekday">Loading...</span>
-          <span class="date">...</span>
-        </div>
+  <header class="app-header">
+    <div class="header-left">
+      <button id="back-btn" class="icon-btn" aria-label="Back to main page">
+        <i class="fa-solid fa-arrow-left"></i>
+      </button>
+      <h1 data-i18n="calendar">Calendar</h1>
+    </div>
+    
+    <div class="header-actions">
+      <button id="theme-toggle" class="icon-btn theme-flip-btn" aria-label="Toggle dark mode">
+  <i class="fa-solid fa-circle-half-stroke"></i>
+</button>
+    </div>
+  </header>
+
+  <main class="calendar-container">
+    <div class="calendar-wrapper">
+      <div class="calendar-header">
+        <button id="prev-month" class="nav-btn" aria-label="Previous month">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <h2 id="calendar-title"></h2>
+        <button id="next-month" class="nav-btn" aria-label="Next month">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <div class="calendar-weekdays">
+        <div data-i18n="sun">Sun</div>
+        <div data-i18n="mon">Mon</div>
+        <div data-i18n="tue">Tue</div>
+        <div data-i18n="wed">Wed</div>
+        <div data-i18n="thu">Thu</div>
+        <div data-i18n="fri">Fri</div>
+        <div data-i18n="sat">Sat</div>
+      </div>
+
+      <div id="calendar-grid" class="calendar-grid"></div>
+    </div>
+
+    <!-- Selected Date Events -->
+    <div id="selected-date-panel" class="selected-date-panel hidden">
+      <div class="panel-header">
+        <h3 id="selected-date-title"></h3>
+        <button id="close-panel" class="icon-btn">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
       
-      <div class="header-actions">
-        <button id="settings-toggle" class="icon-btn" aria-label="Open saved notes history">
-          <i class="fa-solid fa-clock-rotate-left"></i>
-        </button>
-        <button id="calendar-toggle" class="icon-btn" aria-label="Open calendar">
-          <i class="fa-solid fa-calendar-days"></i>
-        </button>
-        <button id="theme-toggle" class="icon-btn theme-flip-btn" aria-label="Toggle dark mode">
-          <i class="fa-solid fa-circle-half-stroke"></i>
-        </button>
-          <button id="language-toggle" class="icon-btn" aria-label="Change language">
-            <i class="fa-solid fa-globe"></i>
-          </button>
-
-        <button id="install-btn" class="install-btn hidden" aria-label="Install app">
-          <i class="fa-solid fa-download"></i>
-          <span>Install</span>
-        </button>
+      <div id="events-list" class="events-list">
+        <p class="empty-state" data-i18n="noEvents">No events for this date</p>
       </div>
-    </header>
-
-<!-- Upcoming Event Reminders -->
-<div id="event-reminders" class="event-reminders-bar hidden" aria-live="polite">
-  <div class="reminders-content">
-    <!-- Reminders injected by JS -->
-  </div>
-</div>
-
-
-    <main class="main-content">
-      <!-- Notepad Section -->
-      <section id="notepad" class="notepad-section">
-        <div class="section-header">
-          <h1>Homework Notes</h1>
-          <span class="subject-counter">0/7 subjects</span>
+      
+      <form id="event-form" class="event-form">
+        <input 
+          type="text" 
+          id="event-title" 
+          data-i18n-placeholder="eventTitle"
+          placeholder="Event title" 
+          required 
+        />
+        <div class="form-actions">
+          <button type="submit" class="btn-primary" data-i18n="saveEvent">Save Event</button>
+          <button type="button" id="cancel-event" class="btn-secondary" data-i18n="cancel">Cancel</button>
         </div>
-        
-        <div id="subjects-container" class="subjects-grid">
-          <!-- Subject blocks generated by JS -->
-        </div>
-        
-        <!-- Listed Tasks Section -->
-        <div class="listed-tasks-section">
-          <div class="section-header">
-            <h2><i class="fa-solid fa-list-check"></i> Listed Tasks</h2>
-            <span class="task-counter">0 tasks</span>
-          </div>
-          <div id="listed-tasks-container" class="listed-tasks-container">
-            <!-- Listed tasks generated by JS -->
-          </div>
-          <button id="add-listed-task" class="btn-secondary add-task-btn">
-            <i class="fa-solid fa-plus"></i> Add Task
-          </button>
-        </div>
-        
-        <button id="add-subject" class="fab-btn" aria-label="Add new subject">
-          <i class="fa-solid fa-plus"></i>
-        </button>
-      </section>
-    </main>
+      </form>
+    </div>
+  </main>
 
-    <!-- Calendar Modal -->
-    <dialog id="calendar-dialog" class="modal calendar-modal" aria-labelledby="calendar-title">
-      <div class="modal-content">
-        <div class="calendar-header">
-          <button id="prev-month" class="nav-btn" aria-label="Previous month">
-            <i class="fa-solid fa-chevron-left"></i>
-          </button>
-          <h2 id="calendar-title" class="calendar-title">Calendar</h2>
-          <button id="next-month" class="nav-btn" aria-label="Next month">
-            <i class="fa-solid fa-chevron-right"></i>
-          </button>
-          <button id="calendar-close" class="close-btn" aria-label="Close calendar">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-
-        <div class="calendar-weekdays" role="row">
-          <div role="columnheader">Sun</div>
-          <div role="columnheader">Mon</div>
-          <div role="columnheader">Tue</div>
-          <div role="columnheader">Wed</div>
-          <div role="columnheader">Thu</div>
-          <div role="columnheader">Fri</div>
-          <div role="columnheader">Sat</div>
-        </div>
-
-        <div id="calendar-grid" class="calendar-grid" role="grid"></div>
-
-        <form id="event-form" class="event-form hidden">
-          <h3>Add Event</h3>
-          <div class="form-group">
-            <input 
-              type="text" 
-              id="event-title" 
-              placeholder="Event title" 
-              required
-              autocomplete="off"
-            >
-          </div>
-          <div class="form-actions">
-            <button type="button" id="cancel-event" class="btn-secondary">Cancel</button>
-            <button type="submit" class="btn-primary">Save Event</button>
-          </div>
-        </form>
-      </div>
-    </dialog>
-
-    <!-- Settings/History Modal -->
-    <dialog id="settings-dialog" class="modal settings-modal" aria-labelledby="settings-title">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2 id="settings-title">Notes History</h2>
-          <button id="settings-close" class="close-btn" aria-label="Close settings">
-            <i class="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        
-        <div class="settings-actions">
-          <button id="export-data" class="btn-secondary">
-            <i class="fa-solid fa-file-export"></i> Export Data
-          </button>
-          <button id="clear-history" class="btn-danger">
-            <i class="fa-solid fa-trash"></i> Clear History
-          </button>
-        </div>
-        
-        <div id="saved-notes" class="notes-history">
-          <p class="empty-state">No saved notes yet</p>
-        </div>
-      </div>
-    </dialog>
-    
-
-    <!-- Toast Notifications -->
-    <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
-  </div>
-
-  <!-- Deferred Scripts -->
-  <script src="app.js" defer></script>
+  <div id="toast-container" class="toast-container"></div>
   
-  <script>
-    // Service Worker Registration with update handling
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', async () => {
-        try {
-          const registration = await navigator.serviceWorker.register('service-worker.js');
-          
-          // Handle updates
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                // New version available
-                showUpdateNotification(newWorker);
-              }
-            });
-          });
-          
-          console.log('SW registered:', registration.scope);
-        } catch (err) {
-          console.error('SW registration failed:', err);
-        }
-      });
-    }
-    
-    function showUpdateNotification(worker) {
-      const toast = document.createElement('div');
-      toast.className = 'toast update-toast';
-      toast.innerHTML = `
-        <span>New version available!</span>
-        <button onclick="location.reload()">Update</button>
-      `;
-      document.getElementById('toast-container').appendChild(toast);
-    }
-  </script>
+  <script src="events.js" defer></script>
 </body>
 </html>
