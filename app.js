@@ -892,33 +892,34 @@ class UIController {
     });
   }
   
-  renderEventReminders() {
-    const upcoming = this.state.getUpcomingEvents();
-    const remindersBar = this.elements.eventReminders;
-    const content = this.elements.remindersContent;
-    
-    if (!remindersBar || !content) return;
-    
-    if (upcoming.length === 0) {
-      remindersBar.classList.add('hidden');
-      return;
-    }
-    
-    remindersBar.classList.remove('hidden');
-    content.innerHTML = upcoming.map(event => {
-      const isUrgent = event.daysRemaining <= 2;
-      const daysText = event.daysRemaining === 0 ? this.state.t('today') + '!' : 
-                       event.daysRemaining === 1 ? `1 ${this.state.t('dayLeft')}` : 
-                       `${event.daysRemaining} ${this.state.t('daysLeft')}`;
-      
-      return `
-        <div class="reminder-item ${isUrgent ? 'urgent' : ''}">
-          <i class="fa-solid fa-bell"></i>
-          <span>${event.title} - ${daysText}</span>
-        </div>
-      `;
-    }).join('');
+renderEventReminders() {
+  const upcoming = this.state.getUpcomingEvents();
+  const remindersBar = this.elements.eventReminders;
+  const content = this.elements.remindersContent;
+  
+  if (!remindersBar || !content) return;
+  
+  if (upcoming.length === 0) {
+    remindersBar.classList.add('hidden');
+    return;
   }
+  
+  remindersBar.classList.remove('hidden');
+  content.innerHTML = upcoming.map(event => {
+    const isUrgent = event.daysRemaining <= 2;
+    const daysText = event.daysRemaining === 0 ? this.state.t('today') + '!' : 
+                     event.daysRemaining === 1 ? `1 ${this.state.t('dayLeft')}` : 
+                     `${event.daysRemaining} ${this.state.t('daysLeft')}`;
+    
+    return `
+      <div class="reminder-item ${isUrgent ? 'urgent' : ''}">
+        <i class="fa-solid fa-bell"></i>
+        <span>${event.title} - ${daysText}</span>
+      </div>
+    `;
+  }).join('');
+}
+
   
   showSubjectPicker() {
     const picker = document.createElement('div');
