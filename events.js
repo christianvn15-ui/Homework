@@ -161,29 +161,28 @@ function init() {
 function loadTheme() {
   const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  
+  const themeToggle = document.getElementById('theme-toggle');
+
   if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
     document.documentElement.setAttribute('data-theme', 'dark');
-    updateThemeIcon('dark');
+    if (themeToggle) themeToggle.classList.add('dark-mode');
   } else {
     document.documentElement.setAttribute('data-theme', 'light');
-    updateThemeIcon('light');
-  }
-}
-
-function updateThemeIcon(theme) {
-  const icon = document.querySelector('#theme-toggle i');
-  if (icon) {
-    icon.className = theme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+    if (themeToggle) themeToggle.classList.remove('dark-mode');
   }
 }
 
 function toggleTheme() {
   const current = document.documentElement.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
+  const themeToggle = document.getElementById('theme-toggle');
+  
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
-  updateThemeIcon(next);
+  
+  if (themeToggle) {
+    themeToggle.classList.toggle('dark-mode', next === 'dark');
+  }
 }
 
 // Load language from main app
@@ -249,7 +248,7 @@ function renderCalendar() {
                     state.currentYear === today.getFullYear();
     const key = `${state.currentYear}-${state.currentMonth + 1}-${d}`;
     const hasEvent = state.events.has(key) && state.events.get(key).length > 0;
-    
+
     const dayDiv = createDayCell(d, false, isToday, hasEvent, key);
     elements.calendarGrid.appendChild(dayDiv);
   }
@@ -266,21 +265,21 @@ function renderCalendar() {
 function createDayCell(day, isOtherMonth, isToday = false, hasEvent = false, dateKey = null) {
   const div = document.createElement("div");
   div.className = "calendar-day";
-  
+
   // Create day number element
   const dayNumber = document.createElement("span");
   dayNumber.className = "day-number";
   dayNumber.textContent = day;
   div.appendChild(dayNumber);
-  
+
   if (isOtherMonth) div.classList.add("other-month");
   if (isToday) div.classList.add("today");
   if (hasEvent) div.classList.add("has-event");
-  
+
   if (!isOtherMonth && dateKey) {
     div.onclick = () => selectDate(day, dateKey, div);
   }
-  
+
   return div;
 }
 
@@ -290,12 +289,12 @@ function selectDate(day, key, element) {
   // Remove previous selection
   document.querySelectorAll('.calendar-day').forEach(d => d.classList.remove('selected'));
   element.classList.add('selected');
-  
+
   state.selectedDate = key;
-  
+
   // Show panel
   elements.selectedDatePanel.classList.remove("hidden");
-  
+
   // Format date for display
   const [year, month, dayNum] = key.split('-').map(Number);
   const date = new Date(year, month - 1, dayNum);
@@ -305,7 +304,7 @@ function selectDate(day, key, element) {
     month: 'long', 
     day: 'numeric' 
   });
-  
+
   renderEventsList(key);
   elements.eventTitle.value = "";
   elements.eventTitle.focus();
@@ -313,12 +312,12 @@ function selectDate(day, key, element) {
 
 function renderEventsList(dateKey) {
   const events = state.events.get(dateKey) || [];
-  
+
   if (events.length === 0) {
     elements.eventsList.innerHTML = `<p class="empty-state">${t('noEvents')}</p>`;
     return;
   }
-  
+
   elements.eventsList.innerHTML = events.map((event, index) => `
     <div class="event-item">
       <span>${event.title}</span>
@@ -332,7 +331,7 @@ function renderEventsList(dateKey) {
 // Save event
 function saveEvent(e) {
   e.preventDefault();
-  
+
   const title = elements.eventTitle.value.trim();
   if (!title || !state.selectedDate) return;
 
@@ -345,7 +344,7 @@ function saveEvent(e) {
 
   state.events.set(state.selectedDate, events);
   saveEvents();
-  
+
   elements.eventTitle.value = "";
   renderCalendar();
   renderEventsList(state.selectedDate);
@@ -356,13 +355,13 @@ function saveEvent(e) {
 function deleteEvent(dateKey, index) {
   const events = state.events.get(dateKey) || [];
   events.splice(index, 1);
-  
+
   if (events.length === 0) {
     state.events.delete(dateKey);
   } else {
     state.events.set(dateKey, events);
   }
-  
+
   saveEvents();
   renderCalendar();
   renderEventsList(dateKey);
@@ -405,7 +404,7 @@ function showToast(message, type = 'info') {
     <span>${message}</span>
   `;
   elements.toastContainer.appendChild(toast);
-  
+
   setTimeout(() => {
     toast.style.animation = 'fadeOut 0.3s ease forwards';
     setTimeout(() => toast.remove(), 300);
@@ -418,26 +417,26 @@ function attachEventListeners() {
   document.getElementById("back-btn").onclick = () => {
     window.location.href = 'index.html';
   };
-  
+
   // Theme toggle
   document.getElementById("theme-toggle").onclick = toggleTheme;
-  
+
   // Calendar navigation
   document.getElementById("prev-month").onclick = prevMonth;
   document.getElementById("next-month").onclick = nextMonth;
-  
+
   // Event form
   elements.eventForm.onsubmit = saveEvent;
-  
+
   // Cancel button
   document.getElementById("cancel-event").onclick = () => {
     elements.eventTitle.value = "";
     elements.eventTitle.blur();
   };
-  
+
   // Close panel
   document.getElementById("close-panel").onclick = hidePanel;
-  
+
   // Keyboard shortcuts
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
