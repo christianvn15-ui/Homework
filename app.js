@@ -1,5 +1,6 @@
 const CONFIG = {
   MAX_SUBJECTS: 7,
+  TOTAL_AVAILABLE_SUBJECTS: 15,
   REMINDER_DAYS: 7,
   LANGUAGES: {
     en: { name: 'English', native: 'English', flag: '🇬🇧', dir: 'ltr' },
@@ -444,47 +445,46 @@ class AppState {
     this.languageSelected = false;
     this.listedTasks = [];
   }
-  
+
   async init() {
     await this.loadData();
-    // REMOVED: Daily reset functionality - homework now persists across days
     this.requestNotificationPermission();
     this.cleanupOldNotificationFlags();
     this.loadFinishedSubjects();
     this.loadListedTasks();
     return this;
   }
-  
+
   async loadData() {
     this.subjectsSelected = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED) === 'true';
     this.notificationsEnabled = localStorage.getItem(CONFIG.STORAGE_KEYS.NOTIFICATIONS_ENABLED) === 'true';
     this.languageSelected = localStorage.getItem(CONFIG.STORAGE_KEYS.LANGUAGE_SELECTED) === 'true';
     this.currentLanguage = localStorage.getItem(CONFIG.STORAGE_KEYS.LANGUAGE) || 'en';
-    
+
     const savedSubjects = localStorage.getItem(CONFIG.STORAGE_KEYS.SUBJECTS);
     if (savedSubjects) {
       this.subjects = JSON.parse(savedSubjects);
     } else if (this.subjectsSelected) {
       this.createDefaultSubjects();
     }
-    
+
     const savedEvents = localStorage.getItem(CONFIG.STORAGE_KEYS.EVENTS);
     if (savedEvents) {
       this.events = new Map(Object.entries(JSON.parse(savedEvents)));
     }
   }
-  
+
   loadListedTasks() {
     const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.LISTED_TASKS);
     if (saved) {
       this.listedTasks = JSON.parse(saved);
     }
   }
-  
+
   saveListedTasks() {
     localStorage.setItem(CONFIG.STORAGE_KEYS.LISTED_TASKS, JSON.stringify(this.listedTasks));
   }
-  
+
   addListedTask(text) {
     const task = {
       id: `task-${Date.now()}`,
@@ -496,7 +496,7 @@ class AppState {
     this.saveListedTasks();
     return task;
   }
-  
+
   updateListedTask(id, updates) {
     const task = this.listedTasks.find(t => t.id === id);
     if (task) {
@@ -504,36 +504,32 @@ class AppState {
       this.saveListedTasks();
     }
   }
-  
+
   deleteListedTask(id) {
     this.listedTasks = this.listedTasks.filter(t => t.id !== id);
     this.saveListedTasks();
   }
-  
+
   loadFinishedSubjects() {
     const saved = localStorage.getItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS);
     if (saved) {
       const data = JSON.parse(saved);
-      // REMOVED: Date checking - finished status now persists until manually cleared
-      // or until user finishes and archives
       this.finishedSubjects = new Set(data.subjects || []);
     }
   }
-  
+
   saveFinishedSubjects() {
     const data = {
       subjects: Array.from(this.finishedSubjects)
     };
     localStorage.setItem(CONFIG.STORAGE_KEYS.FINISHED_SUBJECTS, JSON.stringify(data));
   }
-  
+
   markSubjectFinished(subjectId) {
     this.finishedSubjects.add(subjectId);
     this.saveFinishedSubjects();
     this.archiveSubjectNotes(subjectId);
-    
-    // Keep the notes visible but mark as finished - user can still edit if needed
-    // or clear notes if they want fresh start
+
     const subject = this.subjects.find(s => s.id === subjectId);
     if (subject) {
       subject.finished = true;
@@ -541,7 +537,7 @@ class AppState {
       this.saveSubjects();
     }
   }
-  
+
   unfinishSubject(subjectId) {
     this.finishedSubjects.delete(subjectId);
     this.saveFinishedSubjects();
@@ -552,11 +548,11 @@ class AppState {
       this.saveSubjects();
     }
   }
-  
+
   archiveSubjectNotes(subjectId) {
     const subject = this.subjects.find(s => s.id === subjectId);
     if (!subject || !subject.notes.trim()) return;
-    
+
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [];
     history.push({
       date: new Date().toDateString(),
@@ -567,11 +563,11 @@ class AppState {
     });
     localStorage.setItem(CONFIG.STORAGE_KEYS.NOTES, JSON.stringify(history));
   }
-  
+
   isSubjectFinished(subjectId) {
     return this.finishedSubjects.has(subjectId);
   }
-  
+
   createDefaultSubjects() {
     this.subjects = AVAILABLE_SUBJECTS.slice(0, CONFIG.MAX_SUBJECTS).map((name, index) => ({
       id: `subject-${Date.now()}-${index}`,
@@ -583,7 +579,7 @@ class AppState {
     }));
     this.saveSubjects();
   }
-  
+
   setSelectedSubjects(selectedNames) {
     this.subjects = selectedNames.map((name, index) => ({
       id: `subject-${Date.now()}-${index}`,
@@ -597,7 +593,7 @@ class AppState {
     localStorage.setItem(CONFIG.STORAGE_KEYS.SUBJECTS_SELECTED, 'true');
     this.saveSubjects();
   }
-  
+
   setLanguage(langCode) {
     if (CONFIG.LANGUAGES[langCode]) {
       this.currentLanguage = langCode;
@@ -608,35 +604,35 @@ class AppState {
     }
     return false;
   }
-  
+
   t(key, replacements = {}) {
     const translation = TRANSLATIONS[this.currentLanguage]?.[key] || TRANSLATIONS.en[key] || key;
     return translation.replace(/\{(\w+)\}/g, (match, key) => replacements[key] || match);
   }
-  
+
   saveSubjects() {
     localStorage.setItem(CONFIG.STORAGE_KEYS.SUBJECTS, JSON.stringify(this.subjects));
   }
-  
+
   saveEvents() {
     const obj = Object.fromEntries(this.events);
     localStorage.setItem(CONFIG.STORAGE_KEYS.EVENTS, JSON.stringify(obj));
     this.updateBadge();
   }
-  
+
   async requestNotificationPermission() {
     if ('Notification' in window && Notification.permission === 'granted') {
       this.notificationsEnabled = true;
       localStorage.setItem(CONFIG.STORAGE_KEYS.NOTIFICATIONS_ENABLED, 'true');
     }
   }
-  
+
   async enableNotifications() {
     if (!('Notification' in window)) {
       this.showToast(this.t('notificationDenied'), 'error');
       return false;
     }
-    
+
     const permission = await Notification.requestPermission();
     if (permission === 'granted') {
       this.notificationsEnabled = true;
@@ -649,9 +645,7 @@ class AppState {
       return false;
     }
   }
-  
-  // REMOVED: checkDailyReset() - no longer needed as homework persists
-  
+
   async updateBadge() {
     if ('setAppBadge' in navigator) {
       const today = new Date();
@@ -668,7 +662,7 @@ class AppState {
       }
     }
   }
-  
+
   showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
@@ -683,18 +677,18 @@ class AppState {
       setTimeout(() => toast.remove(), 300);
     }, 3000);
   }
-  
+
   getUpcomingEvents() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const upcoming = [];
-    
+
     this.events.forEach((events, dateKey) => {
       const [year, month, day] = dateKey.split('-').map(Number);
       const eventDate = new Date(year, month - 1, day);
       const diffTime = eventDate - today;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
+
       if (diffDays >= 0 && diffDays <= CONFIG.REMINDER_DAYS) {
         events.forEach(event => {
           upcoming.push({
@@ -706,13 +700,13 @@ class AppState {
         });
       }
     });
-    
+
     return upcoming.sort((a, b) => a.daysRemaining - b.daysRemaining);
   }
-  
+
   sendReminderNotifications() {
     if (!this.notificationsEnabled || !('Notification' in window)) return;
-    
+
     const upcoming = this.getUpcomingEvents();
     upcoming.forEach(event => {
       if (event.daysRemaining > 0) {
@@ -727,18 +721,18 @@ class AppState {
       }
     });
   }
-  
+
   cleanupOldNotificationFlags() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     for (let i = localStorage.length - 1; i >= 0; i--) {
       const key = localStorage.key(i);
       if (key && key.startsWith('notified-')) {
         const eventId = key.replace('notified-', '');
         let eventExists = false;
         let eventDate = null;
-        
+
         this.events.forEach((events, dateKey) => {
           const event = events.find(e => e.id === eventId);
           if (event) {
@@ -747,7 +741,7 @@ class AppState {
             eventDate = new Date(year, month - 1, day);
           }
         });
-        
+
         if (!eventExists || (eventDate && eventDate < today)) {
           localStorage.removeItem(key);
         }
@@ -762,7 +756,7 @@ class UIController {
     this.elements = {};
     this.cacheElements();
   }
-  
+
   cacheElements() {
     this.elements = {
       dateDisplay: document.getElementById('date-display'),
@@ -770,7 +764,6 @@ class UIController {
       subjectCounter: document.querySelector('.subject-counter'),
       settingsDialog: document.getElementById('settings-dialog'),
       savedNotes: document.getElementById('saved-notes'),
-      eventDisplay: document.getElementById('event-display'),
       eventReminders: document.getElementById('event-reminders'),
       remindersContent: document.querySelector('.reminders-content'),
       installBtn: document.getElementById('install-btn'),
@@ -778,14 +771,14 @@ class UIController {
       taskCounter: document.querySelector('.task-counter')
     };
   }
-  
+
   init() {
     this.renderDate();
     this.initTheme();
     this.updatePageLanguage();
     this.renderEventReminders();
     this.checkAndNotifyUpcomingEvents();
-    
+
     if (!this.state.languageSelected) {
       this.showLanguagePicker();
     } else if (!this.state.subjectsSelected || this.state.subjects.length === 0) {
@@ -793,17 +786,16 @@ class UIController {
     } else {
       this.renderSubjects();
       this.renderListedTasks();
-      this.renderTodayEvents();
     }
-    
+
     this.attachEventListeners();
     this.state.sendReminderNotifications();
-    
+
     if ('requestIdleCallback' in window) {
       requestIdleCallback(() => this.idleInitialization());
     }
   }
-  
+
   updatePageLanguage() {
     document.documentElement.lang = this.state.currentLanguage;
     document.querySelectorAll('[data-i18n]').forEach(el => {
@@ -819,7 +811,7 @@ class UIController {
       }
     });
   }
-  
+
   showLanguagePicker() {
     const overlay = document.createElement('div');
     overlay.className = 'language-picker-overlay';
@@ -845,13 +837,13 @@ class UIController {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(overlay);
-    
+
     let selectedLang = null;
     const options = overlay.querySelectorAll('.language-option');
     const confirmBtn = overlay.querySelector('#confirm-language');
-    
+
     options.forEach(option => {
       option.addEventListener('click', () => {
         options.forEach(o => o.classList.remove('selected'));
@@ -860,7 +852,7 @@ class UIController {
         confirmBtn.disabled = false;
       });
     });
-    
+
     confirmBtn.addEventListener('click', () => {
       if (selectedLang) {
         this.state.setLanguage(selectedLang);
@@ -870,57 +862,56 @@ class UIController {
       }
     });
   }
-  
+
   checkAndNotifyUpcomingEvents() {
     if (!this.state.notificationsEnabled || !('Notification' in window)) return;
-    
+
     const upcoming = this.state.getUpcomingEvents();
     const twoDaysAway = upcoming.filter(event => event.daysRemaining === 2);
-    
+
     twoDaysAway.forEach(event => {
       const notifiedKey = `notified-${event.id}`;
       if (localStorage.getItem(notifiedKey)) return;
-      
+
       new Notification(`📅 ${this.state.t('eventReminder')}`, {
         body: `${event.title} - 2 ${this.state.t('daysLeft')}`,
         icon: './icon-192.png',
         badge: './icon-192.png',
         tag: event.id
       });
-      
+
       localStorage.setItem(notifiedKey, 'true');
     });
   }
-  
-renderEventReminders() {
-  const upcoming = this.state.getUpcomingEvents();
-  const remindersBar = this.elements.eventReminders;
-  const content = this.elements.remindersContent;
-  
-  if (!remindersBar || !content) return;
-  
-  if (upcoming.length === 0) {
-    remindersBar.classList.add('hidden');
-    return;
-  }
-  
-  remindersBar.classList.remove('hidden');
-  content.innerHTML = upcoming.map(event => {
-    const isUrgent = event.daysRemaining <= 2;
-    const daysText = event.daysRemaining === 0 ? this.state.t('today') + '!' : 
-                     event.daysRemaining === 1 ? `1 ${this.state.t('dayLeft')}` : 
-                     `${event.daysRemaining} ${this.state.t('daysLeft')}`;
-    
-    return `
-      <div class="reminder-item ${isUrgent ? 'urgent' : ''}">
-        <i class="fa-solid fa-bell"></i>
-        <span>${event.title} - ${daysText}</span>
-      </div>
-    `;
-  }).join('');
-}
 
-  
+  renderEventReminders() {
+    const upcoming = this.state.getUpcomingEvents();
+    const remindersBar = this.elements.eventReminders;
+    const content = this.elements.remindersContent;
+
+    if (!remindersBar || !content) return;
+
+    if (upcoming.length === 0) {
+      remindersBar.classList.add('hidden');
+      return;
+    }
+
+    remindersBar.classList.remove('hidden');
+    content.innerHTML = upcoming.map(event => {
+      const isUrgent = event.daysRemaining <= 2;
+      const daysText = event.daysRemaining === 0 ? this.state.t('today') + '!' : 
+                       event.daysRemaining === 1 ? `1 ${this.state.t('dayLeft')}` : 
+                       `${event.daysRemaining} ${this.state.t('daysLeft')}`;
+
+      return `
+        <div class="reminder-item ${isUrgent ? 'urgent' : ''}">
+          <i class="fa-solid fa-bell"></i>
+          <span>${event.title} - ${daysText}</span>
+        </div>
+      `;
+    }).join('');
+  }
+
   showSubjectPicker() {
     const picker = document.createElement('div');
     picker.id = 'subject-picker';
@@ -950,14 +941,14 @@ renderEventReminders() {
         </div>
       </div>
     `;
-    
+
     document.body.appendChild(picker);
-    
+
     const checkboxes = picker.querySelectorAll('input[type="checkbox"]');
     const confirmBtn = picker.querySelector('#confirm-subjects');
     const countDisplay = picker.querySelector('.selection-count');
     let selectedCount = 0;
-    
+
     checkboxes.forEach(checkbox => {
       checkbox.addEventListener('change', (e) => {
         const label = e.target.closest('.subject-option');
@@ -977,26 +968,25 @@ renderEventReminders() {
         confirmBtn.disabled = selectedCount !== CONFIG.MAX_SUBJECTS;
       });
     });
-    
+
     confirmBtn.addEventListener('click', () => {
       const selected = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.value);
       this.state.setSelectedSubjects(selected);
       picker.remove();
       this.renderSubjects();
       this.renderListedTasks();
-      this.renderTodayEvents();
       this.state.showToast(this.state.t('saved'), 'success');
     });
   }
-  
+
   idleInitialization() {
     this.preloadResources();
     this.setupPeriodicSync();
   }
-  
+
   preloadResources() {
   }
-  
+
   setupPeriodicSync() {
     if ('serviceWorker' in navigator && 'sync' in registration) {
       navigator.serviceWorker.ready.then(registration => {
@@ -1006,15 +996,9 @@ renderEventReminders() {
       });
     }
   }
-  
+
   renderDate() {
     const now = new Date();
-    const options = { 
-      weekday: 'long', 
-      day: 'numeric', 
-      month: 'long',
-      locale: this.state.currentLanguage 
-    };
     try {
       const weekday = now.toLocaleDateString(this.state.currentLanguage, { weekday: 'long' });
       const day = now.toLocaleDateString(this.state.currentLanguage, { day: 'numeric' });
@@ -1027,7 +1011,7 @@ renderEventReminders() {
       this.elements.dateDisplay.innerHTML = `<span class="weekday">${weekday}</span><span class="date">${day} ${month}</span>`;
     }
   }
-  
+
   renderSubjects() {
     const container = this.elements.subjectsContainer;
     container.innerHTML = '';
@@ -1037,16 +1021,14 @@ renderEventReminders() {
     });
     this.updateSubjectCounter();
   }
-  
+
   createSubjectCard(subject, index) {
     const isFinished = this.state.isSubjectFinished(subject.id);
     const card = document.createElement('div');
     card.className = `subject-card ${subject.saved ? 'saved' : ''} ${isFinished ? 'finished' : ''}`;
     card.dataset.id = subject.id;
     card.dataset.index = index;
-    
-    // Notes are now persisted until user clicks finish
-    // Even when finished, notes stay visible but card is marked as finished
+
     card.innerHTML = `
       <input type="text" class="subject-input" placeholder="${this.state.t('addSubject')}" value="${subject.name}" aria-label="${this.state.t('addSubject')}" readonly>
       <textarea class="notes-textarea" placeholder="${this.state.t('addNotesFirst')}" aria-label="${this.state.t('addNotesFirst')} ${subject.name}">${subject.notes}</textarea>
@@ -1061,10 +1043,9 @@ renderEventReminders() {
         `}
       </div>
     `;
-    
+
     const textarea = card.querySelector('.notes-textarea');
-    
-    // Always allow editing and auto-saving
+
     let debounceTimer;
     const autoSave = () => {
       clearTimeout(debounceTimer);
@@ -1072,16 +1053,15 @@ renderEventReminders() {
         this.saveSubject(index, subject.name, textarea.value);
       }, 1000);
     };
-    
+
     textarea.addEventListener('input', autoSave);
-    
+
     if (isFinished) {
       const unfinishBtn = card.querySelector('.btn-icon.unfinish');
       unfinishBtn.addEventListener('click', () => {
         this.state.unfinishSubject(subject.id);
         this.renderSubjects();
         this.updateSubjectCounter();
-        // Focus the textarea after unfinishing
         setTimeout(() => {
           const newCard = this.elements.subjectsContainer.children[index];
           if (newCard) {
@@ -1093,19 +1073,19 @@ renderEventReminders() {
       const saveBtn = card.querySelector('.btn-icon.save');
       const deleteBtn = card.querySelector('.btn-icon.delete');
       const finishBtn = card.querySelector('.btn-icon.finish');
-      
+
       saveBtn.addEventListener('click', () => {
         this.saveSubject(index, subject.name, textarea.value, true);
         card.classList.add('saved');
         setTimeout(() => card.classList.remove('saved'), 2000);
       });
-      
+
       deleteBtn.addEventListener('click', () => {
         if (confirm(this.state.t('finishConfirm', { subject: subject.name }))) {
           this.deleteSubject(index);
         }
       });
-      
+
       finishBtn.addEventListener('click', () => {
         if (!textarea.value.trim()) {
           this.state.showToast(this.state.t('addNotesFirst'), 'error');
@@ -1114,15 +1094,14 @@ renderEventReminders() {
         this.finishSubject(subject.id, index);
       });
     }
-    
+
     return card;
   }
-  
+
   finishSubject(subjectId, index) {
     this.state.markSubjectFinished(subjectId);
     this.state.showToast(this.state.t('greatJob'), 'success');
-    
-    // Find next unfinished subject and focus it
+
     const nextIndex = this.findNextUnfinishedSubject(index);
     if (nextIndex !== -1) {
       setTimeout(() => {
@@ -1136,31 +1115,28 @@ renderEventReminders() {
         }
       }, 300);
     }
-    
+
     this.renderSubjects();
     this.updateSubjectCounter();
   }
-  
+
   findNextUnfinishedSubject(currentIndex) {
-    // Look for next unfinished subject after current
     for (let i = currentIndex + 1; i < this.state.subjects.length; i++) {
       if (!this.state.isSubjectFinished(this.state.subjects[i].id)) {
         return i;
       }
     }
-    // If none found after, look from beginning
     for (let i = 0; i < currentIndex; i++) {
       if (!this.state.isSubjectFinished(this.state.subjects[i].id)) {
         return i;
       }
     }
-    // If current is the only unfinished one, return it
     if (!this.state.isSubjectFinished(this.state.subjects[currentIndex].id)) {
       return currentIndex;
     }
     return -1;
   }
-  
+
   saveSubject(index, name, notes, manual = false) {
     this.state.subjects[index].name = name;
     this.state.subjects[index].notes = notes;
@@ -1171,7 +1147,7 @@ renderEventReminders() {
     }
     this.state.saveSubjects();
   }
-  
+
   deleteSubject(index) {
     if (this.state.subjects.length <= 1) {
       this.state.showToast(this.state.t('cannotDelete'), 'error');
@@ -1183,7 +1159,7 @@ renderEventReminders() {
     this.updateSubjectCounter();
     this.state.showToast(this.state.t('subjectDeleted'), 'info');
   }
-  
+
   addSubject() {
     if (this.state.subjects.length >= CONFIG.MAX_SUBJECTS) {
       this.state.showToast(this.state.t('maxSubjects'), 'error');
@@ -1194,7 +1170,7 @@ renderEventReminders() {
       this.state.showToast(this.state.t('maxSubjects'), 'error');
       return;
     }
-    
+
     const picker = document.createElement('dialog');
     picker.className = 'modal';
     picker.innerHTML = `
@@ -1207,7 +1183,7 @@ renderEventReminders() {
     `;
     document.body.appendChild(picker);
     picker.showModal();
-    
+
     window.selectSubjectToAdd = (subjectName) => {
       const newSubject = {
         id: `subject-${Date.now()}`,
@@ -1228,21 +1204,20 @@ renderEventReminders() {
       this.state.showToast(`${this.state.t('addSubject')}: ${subjectName}`, 'success');
     };
   }
-  
+
   updateSubjectCounter() {
     const finishedCount = this.state.finishedSubjects.size;
     const total = this.state.subjects.length;
     this.elements.subjectCounter.textContent = `${finishedCount}/${total} ${this.state.t('finished')} • ${total}/${CONFIG.MAX_SUBJECTS} ${this.state.t('subjectsSelected')}`;
   }
-  
-  // Listed Tasks Methods
+
   renderListedTasks() {
     const container = this.elements.listedTasksContainer;
     const counter = this.elements.taskCounter;
     if (!container) return;
-    
+
     container.innerHTML = '';
-    
+
     if (this.state.listedTasks.length === 0) {
       container.innerHTML = `<p class="empty-state" style="color: var(--color-text-secondary); font-style: italic; padding: var(--space-md);">No tasks yet. Add one below!</p>`;
     } else {
@@ -1251,19 +1226,19 @@ renderEventReminders() {
         container.appendChild(taskCard);
       });
     }
-    
+
     if (counter) {
       const completed = this.state.listedTasks.filter(t => t.completed).length;
       const total = this.state.listedTasks.length;
       counter.textContent = `${completed}/${total} done`;
     }
   }
-  
+
   createListedTaskCard(task) {
     const card = document.createElement('div');
     card.className = `listed-task-card ${task.completed ? 'completed' : ''}`;
     card.dataset.id = task.id;
-    
+
     card.innerHTML = `
       <div class="task-checkbox ${task.completed ? 'checked' : ''}" role="button" tabindex="0" aria-label="Toggle task completion">
         ${task.completed ? '<i class="fa-solid fa-check"></i>' : ''}
@@ -1275,18 +1250,17 @@ renderEventReminders() {
         <i class="fa-solid fa-trash"></i>
       </button>
     `;
-    
+
     const checkbox = card.querySelector('.task-checkbox');
     const input = card.querySelector('.task-input');
     const deleteBtn = card.querySelector('.task-delete-btn');
-    
-    // Toggle completion
+
     const toggleComplete = () => {
       const newStatus = !task.completed;
       this.state.updateListedTask(task.id, { completed: newStatus });
       this.renderListedTasks();
     };
-    
+
     checkbox.addEventListener('click', toggleComplete);
     checkbox.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') {
@@ -1294,35 +1268,31 @@ renderEventReminders() {
         toggleComplete();
       }
     });
-    
-    // Auto-resize textarea
+
     const autoResize = () => {
       input.style.height = 'auto';
       input.style.height = input.scrollHeight + 'px';
     };
-    
+
     input.addEventListener('input', () => {
       autoResize();
       this.state.updateListedTask(task.id, { text: input.value });
     });
-    
-    // Initial resize
+
     setTimeout(autoResize, 0);
-    
-    // Delete task
+
     deleteBtn.addEventListener('click', () => {
       this.state.deleteListedTask(task.id);
       this.renderListedTasks();
       this.state.showToast(this.state.t('taskDeleted'), 'info');
     });
-    
+
     return card;
   }
-  
+
   addListedTask() {
     const task = this.state.addListedTask('');
     this.renderListedTasks();
-    // Focus the new task input
     setTimeout(() => {
       const cards = this.elements.listedTasksContainer.querySelectorAll('.listed-task-card');
       const newCard = cards[cards.length - 1];
@@ -1332,20 +1302,7 @@ renderEventReminders() {
       }
     }, 100);
   }
-  
-  renderTodayEvents() {
-    const today = new Date();
-    const todayKey = `${today.getFullYear()}-${today.getMonth() + 1}-${today.getDate()}`;
-    const events = this.state.events.get(todayKey) || [];
-    const display = this.elements.eventDisplay;
-    
-    if (events.length === 0) {
-      display.innerHTML = `<p class="empty-state">${this.state.t('noEventsToday')}</p>`;
-      return;
-    }
-    display.innerHTML = `<ul>${events.map(event => `<li><i class="fa-solid fa-calendar-check"></i>${event.title}</li>`).join('')}</ul>`;
-  }
-  
+
   renderHistory() {
     const container = this.elements.savedNotes;
     const history = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEYS.NOTES)) || [];
@@ -1363,8 +1320,8 @@ renderEventReminders() {
       </div>
     `).join('');
   }
-  
-    exportData() {
+
+  exportData() {
     const data = {
       subjects: this.state.subjects,
       events: Object.fromEntries(this.state.events),
@@ -1381,100 +1338,89 @@ renderEventReminders() {
     URL.revokeObjectURL(url);
     this.state.showToast(this.state.t('dataExported'), 'success');
   }
-  
+
   clearHistory() {
     if (!confirm(this.state.t('clearHistory') + '?')) return;
     localStorage.removeItem(CONFIG.STORAGE_KEYS.NOTES);
     this.renderHistory();
     this.state.showToast(this.state.t('historyCleared'), 'info');
   }
-  
+
   initTheme() {
-  const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const themeToggle = document.getElementById('theme-toggle');
-  
-  if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-    document.documentElement.setAttribute('data-theme', 'dark');
-    if (themeToggle) themeToggle.classList.add('dark-mode');
-  } else {
-    document.documentElement.setAttribute('data-theme', 'light');
-    if (themeToggle) themeToggle.classList.remove('dark-mode');
-  }
-  
-  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
-    if (!localStorage.getItem(CONFIG.STORAGE_KEYS.THEME)) {
-      const newTheme = e.matches ? 'dark' : 'light';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      if (themeToggle) {
-        themeToggle.classList.toggle('dark-mode', newTheme === 'dark');
-      }
+    const savedTheme = localStorage.getItem(CONFIG.STORAGE_KEYS.THEME);
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const themeToggle = document.getElementById('theme-toggle');
+
+    if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      if (themeToggle) themeToggle.classList.add('dark-mode');
+    } else {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (themeToggle) themeToggle.classList.remove('dark-mode');
     }
-  });
-}
-  
-toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
-  const themeToggle = document.getElementById('theme-toggle');
-  
-  document.documentElement.setAttribute('data-theme', next);
-  localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
-  
-  if (themeToggle) {
-    themeToggle.classList.toggle('dark-mode', next === 'dark');
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+      if (!localStorage.getItem(CONFIG.STORAGE_KEYS.THEME)) {
+        const newTheme = e.matches ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        if (themeToggle) {
+          themeToggle.classList.toggle('dark-mode', newTheme === 'dark');
+        }
+      }
+    });
   }
-}
-  
+
+  toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    const themeToggle = document.getElementById('theme-toggle');
+
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem(CONFIG.STORAGE_KEYS.THEME, next);
+
+    if (themeToggle) {
+      themeToggle.classList.toggle('dark-mode', next === 'dark');
+    }
+  }
+
   attachEventListeners() {
     document.getElementById('calendar-toggle').addEventListener('click', () => {
       window.location.href = 'events.html';
     });
-    
+
     document.getElementById('settings-toggle').addEventListener('click', () => {
       this.renderHistory();
       this.elements.settingsDialog.showModal();
     });
-    
+
     document.getElementById('settings-close').addEventListener('click', () => {
       this.elements.settingsDialog.close();
     });
-    
+
     document.getElementById('export-data').addEventListener('click', () => this.exportData());
     document.getElementById('clear-history').addEventListener('click', () => this.clearHistory());
-    
-    const enableNotifBtn = document.getElementById('enable-notifications');
-    if (enableNotifBtn) {
-      enableNotifBtn.addEventListener('click', async () => {
-        const enabled = await this.state.enableNotifications();
-        if (enabled) {
-          enableNotifBtn.innerHTML = '<i class="fa-solid fa-bell"></i> Notifications On';
-          enableNotifBtn.disabled = true;
-        }
-      });
-    }
-    
+
     document.getElementById('add-subject').addEventListener('click', () => this.addSubject());
     document.getElementById('theme-toggle').addEventListener('click', () => this.toggleTheme());
-    
+
     const addTaskBtn = document.getElementById('add-listed-task');
     if (addTaskBtn) {
       addTaskBtn.addEventListener('click', () => this.addListedTask());
     }
-    
+
     const languageToggle = document.getElementById('language-toggle');
     if (languageToggle) {
       languageToggle.addEventListener('click', () => {
         this.showLanguagePicker();
       });
     }
-    
+
     window.addEventListener('beforeinstallprompt', (e) => {
       e.preventDefault();
       this.state.deferredPrompt = e;
       this.elements.installBtn.classList.remove('hidden');
     });
-    
+
     this.elements.installBtn.addEventListener('click', async () => {
       if (!this.state.deferredPrompt) return;
       this.state.deferredPrompt.prompt();
@@ -1484,11 +1430,11 @@ toggleTheme() {
       }
       this.state.deferredPrompt = null;
     });
-    
+
     this.elements.settingsDialog.addEventListener('click', (e) => {
       if (e.target === this.elements.settingsDialog) this.elements.settingsDialog.close();
     });
-    
+
     document.addEventListener('keydown', (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === 's') {
         e.preventDefault();
@@ -1501,17 +1447,14 @@ toggleTheme() {
         });
       }
     });
-    
+
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
         this.renderDate();
         this.renderEventReminders();
-        // REMOVED: checkDailyReset() - no longer needed
       }
     });
   }
-  
-  // REMOVED: checkDailyReset() method - daily reset functionality removed
 }
 
 
@@ -1519,6 +1462,6 @@ document.addEventListener('DOMContentLoaded', async () => {
   const state = await new AppState().init();
   const ui = new UIController(state);
   ui.init();
-  
+
   window.homeworkApp = { state, ui };
 });
