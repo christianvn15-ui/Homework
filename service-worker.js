@@ -2,7 +2,7 @@ const CACHE_NAME = 'homework-book-v3';
 const STATIC_ASSETS = [
   './',
   './index.html',
-  './styles.css',
+  './style.css',
   './app.js',
   './events.html',
   './events.css',
